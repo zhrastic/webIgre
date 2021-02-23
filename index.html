@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title>Web igre</title>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="shortcut icon" href="favicon.png" />
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <link href="lib/fontawesome/css/all.css" rel="stylesheet"> 
+
+    <link href="css/dashboard.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+    <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+        <!-- Navbar content -->
+        <div class="container-fluid">
+            <a class="navbar-brand" href="">
+                <img src="img/game.svg" width="30" height="30" alt="">
+                Web igre
+            </a>
+            <button class="navbar-toggler position-absolute d-md-none" type="button" data-toggle="collapse"
+                data-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="true"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebarMenu" class="col-md-2 col-lg-1 d-md-block bg-light sidebar collapse">
+                <div class="sidebar-sticky pt-3">
+                    <ul class="nav flex-column" data-bind="foreach: menus" id="js-navigation">
+                        <li class="nav-item">
+                            <a class="nav-link nav-link-sidebar" href="#" data-bind="click: $parent.menuClick, css: { active: $parent.routeName() == name }">
+                                <span data-bind="text: name"></span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            <main role="main" class="col-md-10 ml-sm-auto col-lg-11 px-md-4">
+                <!--ko if: componentName-->
+                <div id="appMain" data-bind='component: componentName'></div>
+                <!--/ko-->
+                <!--ko ifnot: componentName-->
+                <div>
+                    <!--ko if: loading-->
+                    <h2 style="padding-top: 50px;">
+                        <center>
+                            Loading...
+                            <i class="fas fa-spinner fa-pulse"></i>
+                        </center>
+                    </h1>
+                    <!--/ko-->
+                     <!--ko ifnot: loading-->
+                    <h1>
+                        <center>Web igrice - isprobavanje</center>
+                    </h1>
+                    <!--/ko-->
+                </div>
+                <!--/ko-->
+            </main>
+        </div>
+
+    </div>
+
+
+    <script type='text/javascript' src="lib/jquery/jquery-3.5.1.min.js"></script>
+    <script type='text/javascript' src="lib/knockout/knockout-3.5.1.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+    
+    <script defer src="lib/fontawesome/js/all.js"></script> <!--load all styles -->
+    <script>
+        $(document).ready(function () {
+            function main() {
+                let self = this;
+                this.loading = ko.observable(false);
+                this.componentName = ko.observable();
+                this.routeName = ko.observable("Home");
+                this.menus = [
+                    { name: "Home", link: "", module: "" },
+                    { name: "Trader", link: "src/templates/trader.html", module: "./src/modules/trader.js" },
+                    { name: "Pero", link: "src/templates/pero.html", module: "./src/modules/pero.js" },
+                    { name: "Jura", link: "src/templates/jura.html", module: "./src/modules/jura.js" },
+                    { name: "Štef", link: "src/templates/stef.html", module: "./src/modules/stef.js" },
+                ]
+
+                this.menuClick = function (nesto) {
+                    if (self.loading()) return;
+                    if (nesto.name == "Home") {
+                        self.componentName(null);
+                        self.routeName(nesto.name);
+                        return;
+                    }
+
+                    self.routeName(nesto.name);
+
+                    if (!ko.components.isRegistered(nesto.name)) {
+                        self.loading(true);
+                        self.componentName(null);
+                        $.get(nesto.link, function (htmlTemplate) {
+                            let module = null;
+                            import(nesto.module).then((module) => {
+                                switch (nesto.name) {
+                                    case "Pero":
+                                        module = new module.Pero();
+                                        break;
+                                    case "Jura":
+                                        module = new module.Jura();
+                                        break;
+                                    case "Štef":
+                                        module = new module.Stef();
+                                        break;
+                                    case "Trader":
+                                        module = new module.Trader();
+                                        break;
+                                }
+
+                                let activator = module.activate();
+                                //If activator is Promise, let it finish....
+                                if (activator && activator.then && typeof activator.then === "function") {
+                                    activator.then(rez => {
+                                        ko.components.register(nesto.name, {
+                                            viewModel: { instance: module },
+                                            template: htmlTemplate
+                                        });
+                                        self.componentName(nesto.name);
+                                        self.loading(false);
+                                    });
+                                } else {
+                                    ko.components.register(nesto.name, {
+                                        viewModel: { instance: module },
+                                        template: htmlTemplate
+                                    });
+                                    self.componentName(nesto.name);
+                                    self.loading(false);
+                                }
+                            });
+                        });
+                    } else {
+                        ko.components.get(nesto.name, (retComponent) => {
+                            
+                            if (retComponent) {
+                                let module = retComponent.createViewModel();
+                                //Call activate() method again. 
+                                let activator = module.activate();
+                                if (activator && activator.then && typeof activator.then === "function") {
+                                    activator.then(rez => {
+                                        self.componentName(nesto.name);
+                                        self.loading(false);
+                                    });
+                                } else {
+                                    self.componentName(nesto.name);
+                                    self.loading(false);
+                                }
+                            } else {
+                                self.componentName(nesto.name);
+                                self.loading(false);
+                            }
+                        });
+                    }
+                }
+
+            }
+            ko.applyBindings(new main());
+        });
+    </script>
+</body>
+
+</html>

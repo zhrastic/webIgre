@@ -1,0 +1,312 @@
+<style type=text/css>
+    
+    .trade-table {
+        width:100%;
+        border-collapse: collapse;
+    }
+    .trade-table td, .trade-table th {
+        border: 1px white solid;
+        color: white;
+        min-width: 2px;
+        min-height: 30px;
+        height: 30px;
+        font-size: 0.1em;
+    }
+
+    .trade-lightGreenBackground {
+        background-color: chartreuse;
+    }
+
+    .trade-lightGreenColor {
+        color: chartreuse;
+    }
+
+    .trade-colorWhite{
+        color: white;
+    }
+
+    .trade-spanInventory-red {
+        color: red;
+        font-size: 1.4em;
+    }
+    .trade-spanInventory-green {
+        color: green;
+        font-size: 1.4em;
+    }
+    .trade-spanInventory-yellow {
+        color: yellow;
+        font-size: 1.4em;
+    }
+    .trade-spanInventory-blue {
+        color: lightskyblue;
+        font-size: 1.4em;
+    }
+    .trade-spanInventory-white {
+        color: white;
+        font-size: 1.4em;
+    }
+    .trade-spanInventory-orange {
+        color: orange;
+        font-size: 1.4em;
+    }
+    .trade-spanInventory-violet {
+        color: violet;
+        font-size: 1.4em;
+    }
+
+    td.trade-background-red {
+        background-color: red;
+    }
+    td.trade-background-green {
+        background-color: green;
+    }
+    td.trade-background-blue {
+        background-color: lightskyblue;
+    }
+    td.trade-background-yellow {
+        background-color: yellow;
+    }
+    td.trade-background-white{
+        background-color: white;
+        border: 1px darkgray solid;
+    }
+    td.trade-background-orange{
+        background-color: orange;
+    }
+    td.trade-background-violet{
+        background-color: violet;
+    }
+
+    ul {
+        padding: 0;
+        list-style-type:none;
+    }
+
+</style>
+<div class="container-fluid ">
+    <div class="row">
+        <div class="col-10">
+            <h3>
+                <span data-bind="text: moduleName"></span>
+            </h3>
+        </div>
+        <div class="col-2">
+            <button class="btn btn-success btn-sm float-right" data-bind="click: newGame">Nova igra</button>
+        </div>
+    </div>
+    <hr/>
+    <div class="bg-dark" style="padding: 20px 5px">
+
+        <div class="row" style="padding-bottom: 20px;;">
+            <div class="col-4" >
+                <h1 class="trade-colorWhite" style="margin-top:-15px;">
+                    <span>Dan</span>
+                    <span data-bind="text: day"></span>
+                    
+                </h1>
+                <h5 class="trade-colorWhite">
+                    <span data-bind="text: dayName"></span>
+                </h6>
+            </div>
+            <div class="col-6">
+                <div class="row">
+                    <div class="col-lg-2 col-md-3">
+                        <h5 class="trade-colorWhite">Glasine:</span>
+                    </div>
+                    <div class="col-lg-10 col-md-9">
+                        <ul data-bind="foreach: rumors.getRumors">
+                            <li data-bind="class: className">
+                                (Dan <span data-bind="text: day"></span>) 
+                                <span data-bind="text: inventoryName"></span> 
+                                <span data-bind="text: pricePercent"></span> <span>&#37;</span>
+                                <!--ko if: pricePercent > 0-->
+                                <i class="fas fa-arrow-up text-success"></i>
+                                <!--/ko-->
+                                <!--ko ifnot: pricePercent > 0-->
+                                <i class="fas fa-arrow-down text-danger"></i>
+                                <!--/ko-->
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-2">
+                <div class="btn-group float-right">
+                    <button class="btn btn-outline-light btn-lg" data-bind="click: nextDay, enable: !endOfGame()">Slijedeći dan</button>
+                </div>
+            </div>
+        </div>
+
+        <h5 class="trade-lightGreenColor">
+            <span>Otpornost stanovnika </span>
+            <span data-bind="text: resilience"></span>/<span data-bind="text: totalResilience"></span>
+        </h4>
+        <table class="trade-table">
+            <tbody>
+                <tr data-bind="foreach: resilienceArray">
+                    <td data-bind="css: {'trade-lightGreenBackground': active}">&nbsp;</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="row" style="padding-top: 10px;">
+            <div class="col-12">
+                <div class="mx-auto" style="width:700px;">
+                    <!--ko if: errorMessage().length-->
+                    <div class="alert alert-danger" role="alert">
+                        <span class="trade-spanInventory-red"  data-bind="html: errorMessage"></span>
+                        <button class="btn btn-success btn-sm" data-bind="click: newGame, visible: endOfGame()">Nova igra</button>
+                    </div>
+                    <!--/ko-->
+                    
+                </div>
+            </div>
+        </div>
+
+        <div class="row" style="margin-top:10px; padding-bottom: 20px; border-top: 1px solid white;">
+            <div class="col-3" style="border-right: 1px solid white;">
+                <div class="row">
+                    <div class="col-5">
+                        <h5 class="trade-colorWhite">Kupi</h5>
+                    </div>
+                    <div class="col-5">
+                        <h5 class="trade-colorWhite">Prodajna cijena</h5>
+                    </div>
+                    <div class="col-2">
+                        &nbsp;
+                    </div>
+                </div>
+                <div data-bind="foreach: tradeItems.getTradeItems">
+                    <div class="row" style="margin-bottom: 5px;">
+                        <div class="col-5">
+                            <span data-bind="text: formatedBuy, class: buyClass"></span>
+                        </div>
+                        <div class="col-5">
+                            <span data-bind="text: formatedSell, class: sellClass"></span>
+                        </div>
+                        <div class="col-2">
+                            <button  class="btn btn-outline-light btn-xs" data-bind="click: $parent.executeTransaction.bind($parent, $data), attr: {title: explanation}">
+                                <!--ko if: discountType() == 2 || discountType() == 3 -->
+                                <span class="fa-layers fa-fw" data-bind="attr: {title: explanation}">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    <span class="fa-layers-counter" style="background:green">
+                                        <i class="fas fa-exclamation"></i>
+                                    </span>
+                                </span>
+                                <!--/ko-->
+                                <!--ko if: discountType() == 1 || discountType() == 4 -->
+                                <span class="fa-layers fa-fw" data-bind="attr: {title: explanation}">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    <span class="fa-layers-counter" style="background:red">
+                                        <i class="fas fa-exclamation"></i>
+                                    </span>
+                                </span>
+                                <!--/ko-->
+                                <!--ko if: discountType() == 5    -->
+                                <span class="fa-layers fa-fw" data-bind="attr: {title: explanation}">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    <span class="fa-layers-counter" style="background:orange">
+                                        <i class="fas fa-exclamation"></i>
+                                    </span>
+                                </span>
+                                <!--/ko-->
+                                <!--ko if: discountType() == 0-->
+                                <i class="fas fa-shopping-cart"></i>
+                                <!--/ko-->
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-7">
+                <div class="row" style="margin-bottom: 5px;">
+                    <div class="col-8">
+                        <h5 class="trade-colorWhite">
+                            <span class="float-left">Zalihe</span>
+                        </h5>
+                    </div>
+                    <div class="col-4">
+                        <h5 class="trade-colorWhite">
+                            <span class="float-right">Nadogradi zalihe</span>
+                        </h5>
+                    </div>
+                </div>
+                <div data-bind="foreach: inventory">
+                    <div class="row" data-bind="class: spanClass">
+                        <div class="col-3" >
+                            <span data-bind="html: formatedName"></span>
+                        </div>
+                        <div class="col-8">
+                            <table class="trade-table" style="margin-bottom: 20px;">
+                                <tbody>
+                                    <tr data-bind="foreach: inventoryArray">
+                                        <td data-bind="class: klasa"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-1">
+                            <div class="btn-group btn-group-xs">
+                                <button  class="btn btn-outline-light btn-xs" data-bind="click: upgrade, enable: canUpgrade, attr: {title: upgradeMessage}">
+                                    <i class="fas fa-caret-up"></i>
+                                </button>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-2" style="border-left: 1px solid white;">
+                <div>
+                    <h5 class="trade-colorWhite">Potrebe stanovnika</h5>
+                </div>
+                <div data-bind="foreach: residentalNeeds.getNeedsArray">
+                    <div class="row" data-bind="class: className" style="margin-bottom: 22px;">
+                        <!--ko if: active-->
+                        <div class="col-12">
+                            -<span data-bind="text: itemAmount"></span>
+                            <span data-bind="text: inventoryName"></span>
+                            <span>( </span><span data-bind="text: day"></span> <span> dan)</span>
+                        </div>
+                        <!--/ko-->
+                        <!--ko ifnot: active-->
+                        <div class="col-12">
+                            <span>&nbsp;</span>
+                        </div>
+                        <!--/ko-->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <hr style="border-top: 1px solid white";/>
+        <div class="mx-auto" style="width:500px;">
+            <h3 class="trade-colorWhite">
+                Upute
+            </h3>
+        </div>
+        <div class="trade-colorWhite" style="font-size: 1.2em;">
+            <p>
+                Godine 2021 područje Hrvatske pogodio je razoran potres. 
+            </p>
+            <p>
+                Vaše selo je stradalo u potresu. Vlada i humanitarne organizacije osigurale su smještaj stanovništva, no ne i ostale potrebe stanovništva.
+            </p>
+            <p>
+                Vi kao jedini seoski trgovac uzeli ste si u zadatak osigurati potrebe stanovništva.
+            </p>
+            <p>
+                Da biste to ostvarili morate povoljno trgovati i ne dopustiti da otpornost stanovnika dođe u pitanje.
+            </p>
+            <p>
+                Kupujte jeftino, prodajte skupo, nadograđujte zalihe...
+            </p>
+            <p>
+                Ukoliko ne ispunite potrebe stanovnika određeni dan, otpornost stanovnika opada. Igra je završena kada otpornost stanovnika dođe na 0
+            </p>
+        </div>
+        
+
+    </div>
+</div>
