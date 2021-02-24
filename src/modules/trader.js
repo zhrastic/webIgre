@@ -368,8 +368,8 @@ class TradeItems {
                 let buyItemTotal = (buyItem.total() - buyItem.current());
                 
                 let buyItemPrice = buyItem.unitPrice();
-                let selItemPrice = sellItem.unitPrice();
-                explanation += `Redovna cijena: ${buyItem.inventoryName()} = ${buyItemPrice} /  ${sellItem.inventoryName()} = ${selItemPrice} \n`;
+                let sellItemPrice = sellItem.unitPrice();
+                explanation += `Redovna cijena: ${buyItem.inventoryName()} = ${buyItemPrice} /  ${sellItem.inventoryName()} = ${sellItemPrice} \n`;
 
                 let todayRumors = rummorsArray.filter((rumorItem) => {
                     if (rumorItem.day == day) {
@@ -399,8 +399,8 @@ class TradeItems {
                             rumorsDiscountType = rumorsDiscountType == this.tradeItemTypeEnum.NONE || rumorsDiscountType == this.tradeItemTypeEnum.SELLDOWN ? this.tradeItemTypeEnum.SELLDOWN : this.tradeItemTypeEnum.MIX;
                         }
 
-                        selItemPrice = Math.floor(selItemPrice + (selItemPrice * (rumorItem.pricePercent / 100)));
-                        explanation += `Diskontna cijena: ${sellItem.inventoryName()} =  ${selItemPrice}\n`;
+                        sellItemPrice = Math.floor(sellItemPrice + (sellItemPrice * (rumorItem.pricePercent / 100)));
+                        explanation += `Diskontna cijena: ${sellItem.inventoryName()} =  ${sellItemPrice}\n`;
                         
                     }
                 });
@@ -410,11 +410,11 @@ class TradeItems {
                     if (randomLuck < 800) {
                         if (rumorsDiscountType == this.tradeItemTypeEnum.NONE || rumorsDiscountType == this.tradeItemTypeEnum.SELLUP) {
                             rumorsDiscountType = rumorsDiscountType == this.tradeItemTypeEnum.NONE || rumorsDiscountType == this.tradeItemTypeEnum.SELLUP ? this.tradeItemTypeEnum.SELLUP : this.tradeItemTypeEnum.MIX;
-                            selItemPrice = Math.floor(selItemPrice + (selItemPrice * 0.4));; //increase sell price for 40%
-                            explanation += `Dodatni popust od 40% (sell up) ... ${sellItem.inventoryName()} =  ${selItemPrice} \n`;
+                            sellItemPrice = Math.floor(sellItemPrice + (sellItemPrice * 0.4));; //increase sell price for 40%
+                            explanation += `Dodatni popust od 40% (sell up) ... ${sellItem.inventoryName()} =  ${sellItemPrice} \n`;
                         }else if ( rumorsDiscountType == this.tradeItemTypeEnum.SELLDOWN) {
-                            selItemPrice = Math.floor(selItemPrice - (selItemPrice * 0.4));; //reduce sell price for 40%
-                            explanation += `Dodatni popust od 40% (sell down) ... ${sellItem.inventoryName()} =  ${selItemPrice} \n`;
+                            sellItemPrice = Math.floor(sellItemPrice - (sellItemPrice * 0.4));; //reduce sell price for 40%
+                            explanation += `Dodatni popust od 40% (sell down) ... ${sellItem.inventoryName()} =  ${sellItemPrice} \n`;
                         }else if (rumorsDiscountType == this.tradeItemTypeEnum.BUYDOWN) {
                             buyItemPrice = Math.floor(buyItemPrice - (buyItemPrice * 0.4));; //reduce buy price for 40%
                             explanation += `Dodatni popust od 40% (buy down) ... ${buyItem.inventoryName()} =  ${buyItemPrice} \n`;
@@ -425,11 +425,11 @@ class TradeItems {
                     } else if (randomLuck < 900) {
                         if (rumorsDiscountType == this.tradeItemTypeEnum.NONE || rumorsDiscountType == this.tradeItemTypeEnum.SELLUP) {
                             rumorsDiscountType = rumorsDiscountType == this.tradeItemTypeEnum.NONE || rumorsDiscountType == this.tradeItemTypeEnum.SELLUP ? this.tradeItemTypeEnum.SELLUP : this.tradeItemTypeEnum.MIX;
-                            selItemPrice = Math.floor(selItemPrice + (selItemPrice * 0.5));; //increase sell price for 50%
-                            explanation += `Dodatni popust od 50% (sell up) ... ${sellItem.inventoryName()} =  ${selItemPrice} \n`;    
+                            sellItemPrice = Math.floor(sellItemPrice + (sellItemPrice * 0.5));; //increase sell price for 50%
+                            explanation += `Dodatni popust od 50% (sell up) ... ${sellItem.inventoryName()} =  ${sellItemPrice} \n`;    
                         }else if (rumorsDiscountType == this.tradeItemTypeEnum.SELLDOWN) {
-                            selItemPrice = Math.floor(selItemPrice - (selItemPrice * 0.5));; //reduce sell price for 50%
-                            explanation += `Dodatni popust od 50% (sell down) ... ${sellItem.inventoryName()} =  ${selItemPrice} \n`;
+                            sellItemPrice = Math.floor(sellItemPrice - (sellItemPrice * 0.5));; //reduce sell price for 50%
+                            explanation += `Dodatni popust od 50% (sell down) ... ${sellItem.inventoryName()} =  ${sellItemPrice} \n`;
                         }else if (rumorsDiscountType == this.tradeItemTypeEnum.BUYDOWN) {
                             buyItemPrice = Math.floor(buyItemPrice - (buyItemPrice * 0.5));; //reduce buy price for 50%
                             explanation += `Dodatni popust od 50% (buy down) ... ${buyItem.inventoryName()} =  ${buyItemPrice} \n`;
@@ -441,11 +441,11 @@ class TradeItems {
                     else if (randomLuck < 950) {
                         if (rumorsDiscountType == this.tradeItemTypeEnum.NONE || rumorsDiscountType == this.tradeItemTypeEnum.SELLUP) {
                             rumorsDiscountType = rumorsDiscountType == this.tradeItemTypeEnum.NONE || rumorsDiscountType == this.tradeItemTypeEnum.SELLUP ? this.tradeItemTypeEnum.SELLUP : this.tradeItemTypeEnum.MIX;
-                            selItemPrice = Math.floor(selItemPrice + (selItemPrice * 0.6));; //increase sell price for 60%
-                            explanation += `Dodatni popust od 60% (sell up) ... ${sellItem.inventoryName()} =  ${selItemPrice} \n`;
+                            sellItemPrice = Math.floor(sellItemPrice + (sellItemPrice * 0.6));; //increase sell price for 60%
+                            explanation += `Dodatni popust od 60% (sell up) ... ${sellItem.inventoryName()} =  ${sellItemPrice} \n`;
                         }else if (rumorsDiscountType == this.tradeItemTypeEnum.SELLDOWN) {
-                            selItemPrice = Math.floor(selItemPrice - (selItemPrice * 0.6));; //reduce sell price for 60%
-                            explanation += `Dodatni popust od 60% (sell down) ... ${sellItem.inventoryName()} =  ${selItemPrice} \n`;
+                            sellItemPrice = Math.floor(sellItemPrice - (sellItemPrice * 0.6));; //reduce sell price for 60%
+                            explanation += `Dodatni popust od 60% (sell down) ... ${sellItem.inventoryName()} =  ${sellItemPrice} \n`;
                         }else if (rumorsDiscountType == this.tradeItemTypeEnum.BUYDOWN) {
                             buyItemPrice = Math.floor(buyItemPrice - (buyItemPrice * 0.6));; //reduce buy price for 50%
                             explanation += `Dodatni popust od 60% (buy down) ... ${buyItem.inventoryName()} =  ${buyItemPrice} \n`;
@@ -457,11 +457,11 @@ class TradeItems {
                     else if (randomLuck >= 950) {
                         if (rumorsDiscountType == this.tradeItemTypeEnum.NONE || rumorsDiscountType == this.tradeItemTypeEnum.SELLUP) {
                             rumorsDiscountType = rumorsDiscountType == this.tradeItemTypeEnum.NONE || rumorsDiscountType == this.tradeItemTypeEnum.SELLUP ? this.tradeItemTypeEnum.SELLUP : this.tradeItemTypeEnum.MIX;
-                            selItemPrice = Math.floor(selItemPrice + (selItemPrice * 0.7));; //increase sell price for 70%
-                            explanation += `Dodatni popust od 70% (sell up) ... ${sellItem.inventoryName()} =  ${selItemPrice} \n`;
+                            sellItemPrice = Math.floor(sellItemPrice + (sellItemPrice * 0.7));; //increase sell price for 70%
+                            explanation += `Dodatni popust od 70% (sell up) ... ${sellItem.inventoryName()} =  ${sellItemPrice} \n`;
                         }else if (rumorsDiscountType == this.tradeItemTypeEnum.SELLDOWN) {
-                            selItemPrice = Math.floor(selItemPrice - (selItemPrice * 0.7));; //reduce sell price for 70%
-                            explanation += `Dodatni popust od 70% (sell down) ... ${sellItem.inventoryName()} =  ${selItemPrice} \n`;   
+                            sellItemPrice = Math.floor(sellItemPrice - (sellItemPrice * 0.7));; //reduce sell price for 70%
+                            explanation += `Dodatni popust od 70% (sell down) ... ${sellItem.inventoryName()} =  ${sellItemPrice} \n`;   
                         }else if (rumorsDiscountType == this.tradeItemTypeEnum.BUYDOWN) {
                             buyItemPrice = Math.floor(buyItemPrice - (buyItemPrice * 0.7));; //reduce buy price for 70%
                             explanation += `Dodatni popust od 70% (buy down) ... ${buyItem.inventoryName()} =  ${buyItemPrice} \n`;
@@ -472,12 +472,15 @@ class TradeItems {
                     }
                 }
 
+                buyItemPrice = Math.max(1, buyItemPrice);
+                sellItemPrice = Math.max(1, sellItemPrice);
+
                 let buyItemAmount = Helper.randomMinMaxGenerator(1, buyItemTotal);
-                let sellItemAmount = Math.floor((buyItemPrice * buyItemAmount) / selItemPrice);
+                let sellItemAmount = Math.floor((buyItemPrice * buyItemAmount) / sellItemPrice);
 
                 while (sellItemAmount < 1 || buyItemAmount < 1) {
                     buyItemAmount ++;
-                    sellItemAmount = Math.floor((buyItemPrice * buyItemAmount) / selItemPrice);
+                    sellItemAmount = Math.floor((buyItemPrice * buyItemAmount) / sellItemPrice);
                     //explanation += `Add buyAmount+1. BuyAmount: ${buyItemAmount}, SellAmount: ${sellItemAmount}\n`;
                 }
                                
