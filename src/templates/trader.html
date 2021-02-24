@@ -82,6 +82,11 @@
         list-style-type:none;
     }
 
+    ul.withBull {
+        padding: 15px;
+        list-style-type: none;
+    }
+
 </style>
 <div class="container-fluid ">
     <div class="row">
@@ -140,7 +145,7 @@
         <div class="row">
             <div class="col-3">
                 <h5 class="trade-lightGreenColor">
-                    <span>Otpornost stanovnika </span>
+                    <span>Broj obitelji u selu </span>
                     <span data-bind="text: resilience"></span>/<span data-bind="text: totalResilience"></span>
                 </h4>
             </div>
@@ -298,13 +303,51 @@
                 Vi kao jedini seoski trgovac uzeli ste si u zadatak osigurati potrebe stanovništva.
             </p>
             <p>
-                Da biste to ostvarili morate povoljno trgovati i ne dopustiti da otpornost stanovnika dođe u pitanje.
+                Da biste to ostvarili morate povoljno trgovati i ne dopustiti da se stanovništvo iseli.
             </p>
             <p>
                 Kupujte jeftino, prodajte skupo, nadograđujte zalihe...
             </p>
             <p>
                 Ukoliko ne ispunite potrebe stanovnika određeni dan, otpornost stanovnika opada. Igra je završena kada otpornost stanovnika dođe na 0
+            </p>
+            <p>
+                Pri kupovini obratite pažnju na dodante oznake na ikonici košarice
+                <ul class="withBull">
+                    <li>
+                        <span class="fa-layers fa-fw">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span class="fa-layers-counter" style="background:green">
+                                <i class="fas fa-exclamation"></i>
+                            </span>
+                        </span>
+                        <span style="color: green;">
+                            Zeleno - transakcija je isplativa
+                        </span>
+                    </li>
+                    <li>
+                        <span class="fa-layers fa-fw">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span class="fa-layers-counter" style="background:red">
+                                <i class="fas fa-exclamation"></i>
+                            </span>
+                        </span>
+                        <span style="color: red;">Crveno - transakcija nije isplativa</span>
+                    </li>
+                    <li>
+                        <span class="fa-layers fa-fw">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span class="fa-layers-counter" style="background:orange">
+                                <i class="fas fa-exclamation"></i>
+                            </span>
+                        </span>
+                        <span style="color: orange;">Naranđasto - transakcija je vjerojatno isplativa, no morate sami procijeniti</span>
+                        
+                    </li>
+                    <li>
+                        <i class="fas fa-shopping-cart"></i>
+                        Bez oznake - redovne cijene.</li>
+                </ul>
             </p>
         </div>
         
