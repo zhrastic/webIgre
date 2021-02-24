@@ -137,10 +137,25 @@
             </div>
         </div>
 
-        <h5 class="trade-lightGreenColor">
-            <span>Otpornost stanovnika </span>
-            <span data-bind="text: resilience"></span>/<span data-bind="text: totalResilience"></span>
-        </h4>
+        <div class="row">
+            <div class="col-3">
+                <h5 class="trade-lightGreenColor">
+                    <span>Otpornost stanovnika </span>
+                    <span data-bind="text: resilience"></span>/<span data-bind="text: totalResilience"></span>
+                </h4>
+            </div>
+            <div class="col-9">
+                <div class="mx-auto w-50">
+                    <!--ko if: errorMessage().length-->
+                    <h5>
+                        <span style="color:red;" data-bind="html: errorMessage"></span>
+                        <button class="btn btn-success btn-sm" data-bind="click: newGame, visible: endOfGame()">Nova igra</button>
+                    </h5>
+                    <!--/ko-->
+                </div>
+            </div>
+        </div>
+        
         <table class="trade-table">
             <tbody>
                 <tr data-bind="foreach: resilienceArray">
@@ -148,20 +163,6 @@
                 </tr>
             </tbody>
         </table>
-
-        <div class="row" style="padding-top: 10px;">
-            <div class="col-12">
-                <div class="mx-auto" style="width:700px;">
-                    <!--ko if: errorMessage().length-->
-                    <div class="alert alert-danger" role="alert">
-                        <span class="trade-spanInventory-red"  data-bind="html: errorMessage"></span>
-                        <button class="btn btn-success btn-sm" data-bind="click: newGame, visible: endOfGame()">Nova igra</button>
-                    </div>
-                    <!--/ko-->
-                    
-                </div>
-            </div>
-        </div>
 
         <div class="row" style="margin-top:10px; padding-bottom: 20px; border-top: 1px solid white;">
             <div class="col-3" style="border-right: 1px solid white;">
