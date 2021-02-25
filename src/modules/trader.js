@@ -82,11 +82,12 @@ class Trader {
                     if (objectStore) {
                         let getRequest = objectStore.get(self.user);
                         getRequest.onsuccess = () => {
-                            let saveGame = getRequest.result
-                            self.savedGame = saveGame;
-                            self.hasSavedGames(true);
+                            let result = getRequest.result
+                            if (result) {
+                                self.savedGame = result;
+                                self.hasSavedGames(true);
+                            }
                         }
-
                     }
                     console.log("success: DB Open");
                 }
