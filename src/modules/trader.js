@@ -3,13 +3,14 @@
 class Trader {
     constructor() {
         this.moduleName = ko.observable("Spasi selo trgujući....");
-        this.totalResilience = 20;
+        this.totalResilience = ko.observable(20);
         this.day = ko.observable(1);
         this.resilience = ko.observable(20);
         this.endOfGame = ko.observable(false);
         this.inventory = ko.observableArray([]);
         this.date = new Date();
         this.errorMessage = ko.observable("");
+        this.successMessage = ko.observable("");
 
         let inventoryItem = new Inventory("Meso", 7, Helper.randomMinMaxGenerator(2,6), "red", 45);
         this.inventory.push(inventoryItem);
@@ -30,6 +31,11 @@ class Trader {
         this.tradeItems = new TradeItems(this.inventory(), 14);
         this.residentalNeeds = new ResidentalNeeds(this.inventory());
         
+        this.indexDB = ko.observable(null);
+        this.savedGame = null;
+        this.hasSavedGames = ko.observable(false);
+
+        this.user = "Anonymous";
     }
 
     static getObject() {
@@ -41,7 +47,7 @@ class Trader {
         this.resilienceArray = ko.computed(() => {
             let currentResilience = this.resilience();
             let tmpArray = [];
-            for (let i = 1; i <= this.totalResilience; i++ ) {
+            for (let i = 1; i <= this.totalResilience(); i++ ) {
                 let tmpItem = {rb: i, active: i <= currentResilience};
                 tmpArray.push(tmpItem);
             }
@@ -60,6 +66,40 @@ class Trader {
             item.activate();
         }
 
+        let self = this;
+        if (window.indexedDB) {
+            let request = window.indexedDB.open("WebIgreDB", 1);
+
+            request.onerror = function(event) {
+                console.log("error: DB Open");
+             };
+             
+             request.onsuccess = function(event) {
+                self.indexDB(request.result);
+                let transaction = self.indexDB().transaction(["TraderGame"]);
+                if (transaction) {
+                    let objectStore = transaction.objectStore("TraderGame");
+                    if (objectStore) {
+                        let getRequest = objectStore.get(self.user);
+                        getRequest.onsuccess = () => {
+                            let saveGame = getRequest.result
+                            self.savedGame = saveGame;
+                            self.hasSavedGames(true);
+                        }
+
+                    }
+                    console.log("success: DB Open");
+                }
+             };
+
+             request.onupgradeneeded = function(event) {
+                // Save the IDBDatabase interface
+                var db = event.target.result;
+              
+                // Create an objectStore for this database
+                var objectStore = db.createObjectStore("TraderGame", { keyPath: "user" });
+              };
+        }
         this.rumors.activate(this.day());
         this.tradeItems.activate(this.day(), this.rumors.getRumors());
         this.residentalNeeds.activate(this.day())
@@ -91,14 +131,12 @@ class Trader {
     }
     increaseResilience() {
         let resilience = this.resilience();
-        if (resilience >= this.totalResilience) {
-            this.resilience(this.totalResilience);
+        if (resilience >= this.totalResilience()) {
+            this.resilience(this.totalResilience());
             return;
         }
         this.resilience(this.resilience() + 1);
     }
-
-
     nextDay() {
         this.day(this.day() + 1);
         for (let item, i = 0; item = this.inventory()[i]; ++i ) {
@@ -109,7 +147,6 @@ class Trader {
         let howMatchDecrease = this.residentalNeeds.updateNeeds(this.day());
         this.decreaseResilience(howMatchDecrease);
     }
-
     executeTransaction(item, nesto) {
         let pero = 0;
         let buyItem = this.inventory().find((inventoryItem) => {
@@ -146,10 +183,9 @@ class Trader {
      }
 
      newGame() {
-         this.rumors
          this.endOfGame(false);
          this.errorMessage("");
-         this.resilience(this.totalResilience);
+         this.resilience(this.totalResilience());
          this.day(1);
          this.inventory().forEach((itemInventory) => {
             let naziv = itemInventory.inventoryName();
@@ -199,6 +235,55 @@ class Trader {
         this.tradeItems.updateItems(this.day(), this.rumors.getRumors());
         this.residentalNeeds.updateNeeds(this.day());
      }
+
+     saveGame() {
+        let inventory = ko.toJS(this.inventory());
+        let rumors = ko.toJS(this.rumors.getRumors());
+        let tradeItems = ko.toJS(this.tradeItems.getTradeItems());
+        let needs = ko.toJS(this.residentalNeeds.getNeedsArray())
+        let saveGame = new SaveGame(this.day(), this.resilience(), this.totalResilience(), inventory, rumors, tradeItems, this.tradeItems.arraySize, needs, this.user );
+        let self = this;
+
+        let transaction = this.indexDB().transaction(["TraderGame"], 'readwrite');
+        if (transaction) {
+            let objectStore = transaction.objectStore("TraderGame");
+            if (objectStore) {
+                let putRequest = objectStore.put(saveGame);
+
+                putRequest.onsuccess = () => {
+                    self.successMessage(`Spremanje uspješno!`);
+                    this.savedGame = saveGame;
+                    this.hasSavedGames(true);
+                    setTimeout(() => {
+                        this.successMessage("");
+                    }, 3000);
+                };
+
+                putRequest.onerror = function(event) {
+                    self.errorMessage(`Spremanje nije uspjelo!`);
+                    setTimeout(() => {
+                        this.errorMessage("");
+                    }, 3000);
+                 };
+            }
+        }
+     }
+     loadGame() {
+        let data = this.savedGame;
+        this.day(data.day);
+        this.totalResilience(data.totalResilience);
+        this.resilience(data.resilience);
+        let tmpInventoryArray = [];
+        let inventoryArray = data.inventory.forEach((savedInventory) => {
+            let inventoryItem = new Inventory(savedInventory.inventoryName, savedInventory.total, savedInventory.current, savedInventory.color, savedInventory.unitPrice);
+            inventoryItem.activate();
+            tmpInventoryArray.push(inventoryItem);
+        });
+        this.inventory(tmpInventoryArray);
+        this.tradeItems.load(tmpInventoryArray, data.tradeItems, data.tradeItemsCount);
+        this.rumors.load(tmpInventoryArray, data.rumors);
+        this.residentalNeeds.load(tmpInventoryArray, data.needs);
+     }
 }
 
 class Inventory {
@@ -206,6 +291,7 @@ class Inventory {
         this.inventoryName = ko.observable(name);
         this.total = ko.observable(total);
         this.current = ko.observable(current);
+        this.color = color;
         this.spanClass = ko.observable("trade-spanInventory-" + color);
         this.tableFillClass = ko.observable("trade-background-" + color);
         this.upgraded = ko.observable(false);
@@ -521,6 +607,18 @@ class TradeItems {
     clear() {
         this.tradeItems.removeAll();
     }
+
+    load(inverntoryArray, tradeItems, arraySize) {
+        this.inverntoryArray = inverntoryArray;
+        this.tradeItems.removeAll(); 
+        this.arraySize = arraySize;
+        let tmpArray = [];
+        tradeItems.forEach((itemTrade) => {
+            let newItem = new TradeItem(itemTrade.buyName, itemTrade.buyAmout, itemTrade.buyClass, itemTrade.sellName, itemTrade.sellAmount, itemTrade.sellClass, itemTrade.explanation, itemTrade.discountType)
+            tmpArray.push(newItem);
+        });
+        this.tradeItems(tmpArray);
+    }
 }
 
 class Rumours {
@@ -532,9 +630,13 @@ class Rumours {
     activate(day) {
         this.getRumors = ko.computed(() => {
             let tmpArray = this.rumors();
-            let array = tmpArray.sort((a, b) => {
-                return Helper.numericSort(a, b, "day");
-            });
+            let array = [];
+            if (tmpArray.length > 0) {
+                array = tmpArray.sort((a, b) => {
+                    return Helper.numericSort(a, b, "day");
+                });
+            }
+            
             return array;
         });
         this.updateRumors(day);
@@ -562,7 +664,7 @@ class Rumours {
     addRandomRumor(currentDay) {
         let doWhile = true;
         while (doWhile) {
-            let dayRandom = currentDay == 1 ? Helper.randomMinMaxGenerator(0, 2) : Helper.randomMinMaxGenerator(0, 3);
+            let dayRandom = currentDay == 1 ? Helper.randomMinMaxGenerator(0, 2) : Helper.randomMinMaxGenerator(1, 3);
             let day = currentDay + dayRandom;
             
             let inventoryIndex = Helper.randomMinMaxGenerator(0, this.inverntoryArray.length - 1);
@@ -594,6 +696,16 @@ class Rumours {
     }
     clear() {
         this.rumors.removeAll();
+    }
+
+    load(inverntoryArray, rumors) {
+        this.inverntoryArray = inverntoryArray;
+        let tmpArray = [];
+        rumors.forEach((itemRumor) => {
+            let newItem = new Rumor(itemRumor.day, itemRumor.inventoryName, itemRumor.pricePercent, itemRumor.className);
+            tmpArray.push(newItem);
+        });
+        this.rumors(tmpArray);
     }
 }
 
@@ -710,6 +822,17 @@ class ResidentalNeeds {
         });
     }
 
+    load(inverntoryArray, needs) {
+        this.inventoryArray = inverntoryArray;
+        this.needsArray.removeAll(); 
+        let tmpArray = [];
+        needs.forEach((itemNeed) => {
+            let newItem = new Need(itemNeed.day, itemNeed.inventoryName, itemNeed.itemAmount, itemNeed.className, itemNeed.active);
+            tmpArray.push(newItem);
+        });
+        this.needsArray(tmpArray);
+    }
+
     dispose() {
         this.getNeedsArray.dispose();
     }
@@ -812,6 +935,24 @@ class Helper {
         }
         return current;
     }
+}
+
+
+class SaveGame {
+
+    constructor(day, resilience, totalResilience, inventory, rumors, tradeItems, tradeItemsCount, needs, user) {
+        this.user = user;
+        this.day = day
+        this.resilience = resilience;
+        this.totalResilience = totalResilience;
+        this.inventory = inventory;
+        this.rumors = rumors;
+        this.tradeItems = tradeItems;
+        this.tradeItemsCount = tradeItemsCount
+        this.needs = needs;
+    }
+
+
 }
 
 export {Trader};
