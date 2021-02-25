@@ -11,9 +11,19 @@ class Pero {
 
     activate() {
         return new Promise((resolve, reject) => {
-            setTimeout( function() {
-                resolve("Success!")  // Yay! Everything went well!
-            }, 1000);
+
+            let promise1 = new Promise((resolve, reject) => {
+                import("./helper.js").then((module) => {
+                    let helper = module.Helper;
+                    resolve("imported!")  // this is resolve of import statment
+                });
+            })
+            
+
+            Promise.all([promise1]).then(values => {
+                resolve("Success!")  // this is resolve of activate method
+            })
+
         });
     }
 
