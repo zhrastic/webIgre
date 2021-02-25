@@ -90,18 +90,19 @@
 </style>
 <div class="container-fluid ">
     <div class="row">
-        <div class="col-8">
+        <div class="col-6">
             <h3>
                 <span data-bind="text: moduleName"></span>
             </h3>
         </div>
-        <div class="col-4">
+        <div class="col-6">
             <div class="btn-group float-right" role="group" >
                 <!--ko if: hasSavedGames-->
-                <button class="btn btn-primary btn-sm" data-bind="click: loadGame">Učitaj</button>
+                <button class="btn btn-danger btn-sm" data-bind="click: deleteGame">Obriši spremljenu igru</button>
+                <button class="btn btn-primary btn-sm" data-bind="click: loadGame">Učitaj spremljenu igru</button>
                 <!--/ko-->
                 <!--ko if: indexDB-->
-                <button class="btn btn-info btn-sm" data-bind="click: saveGame">Spremi</button>
+                <button class="btn btn-info btn-sm" data-bind="click: saveGame">Spremi igru</button>
                 <!--/ko-->
                 <button class="btn btn-success btn-sm" data-bind="click: newGame">Nova igra</button>
             </div>

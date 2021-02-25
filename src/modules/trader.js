@@ -41,7 +41,6 @@ class Trader {
     static getObject() {
         return new Trader();
     }
-
     activate() {
 
         this.resilienceArray = ko.computed(() => {
@@ -106,7 +105,6 @@ class Trader {
         this.residentalNeeds.activate(this.day())
         return true;
     }
-
     dispose() {
         this.resilienceArray.dispose();
         this.dayName.dispose();
@@ -118,7 +116,6 @@ class Trader {
         }
 
     }
-
     decreaseResilience(howMatch) {
         let resilience = this.resilience();
         resilience = resilience - howMatch;
@@ -181,9 +178,8 @@ class Trader {
             }, 3000);
         }
 
-     }
-
-     newGame() {
+    }
+    newGame() {
          this.endOfGame(false);
          this.errorMessage("");
          this.resilience(this.totalResilience());
@@ -235,9 +231,8 @@ class Trader {
         this.rumors.updateRumors(this.day());
         this.tradeItems.updateItems(this.day(), this.rumors.getRumors());
         this.residentalNeeds.updateNeeds(this.day());
-     }
-
-     saveGame() {
+    }
+    saveGame() {
         let inventory = ko.toJS(this.inventory());
         let rumors = ko.toJS(this.rumors.getRumors());
         let tradeItems = ko.toJS(this.tradeItems.getTradeItems());
@@ -253,23 +248,23 @@ class Trader {
 
                 putRequest.onsuccess = () => {
                     self.successMessage(`Spremanje uspješno!`);
-                    this.savedGame = saveGame;
-                    this.hasSavedGames(true);
+                    self.savedGame = saveGame;
+                    self.hasSavedGames(true);
                     setTimeout(() => {
-                        this.successMessage("");
+                        self.successMessage("");
                     }, 3000);
                 };
 
                 putRequest.onerror = function(event) {
                     self.errorMessage(`Spremanje nije uspjelo!`);
                     setTimeout(() => {
-                        this.errorMessage("");
+                        self.errorMessage("");
                     }, 3000);
                  };
             }
         }
-     }
-     loadGame() {
+    }
+    loadGame() {
         let data = this.savedGame;
         this.day(data.day);
         this.totalResilience(data.totalResilience);
@@ -284,7 +279,37 @@ class Trader {
         this.tradeItems.load(tmpInventoryArray, data.tradeItems, data.tradeItemsCount);
         this.rumors.load(tmpInventoryArray, data.rumors);
         this.residentalNeeds.load(tmpInventoryArray, data.needs);
-     }
+        this.successMessage(`Učitavanje uspješno!`);
+        setTimeout(() => {
+            this.successMessage("");
+        }, 3000);
+    }
+    deleteGame() {
+        let self = this;
+        let transaction = this.indexDB().transaction(["TraderGame"], 'readwrite');
+        if (transaction) {
+            let objectStore = transaction.objectStore("TraderGame");
+            if (objectStore) {
+                let putRequest = objectStore.delete(self.user);
+
+                putRequest.onsuccess = () => {
+                    self.successMessage(`Brisanje uspješno!`);
+                    self.savedGame = null;
+                    self.hasSavedGames(false);
+                    setTimeout(() => {
+                        self.successMessage("");
+                    }, 3000);
+                };
+
+                putRequest.onerror = function(event) {
+                    self.errorMessage(`Brisanje nije uspjelo!`);
+                    setTimeout(() => {
+                        self.errorMessage("");
+                    }, 3000);
+                 };
+            }
+        }
+    }
 }
 
 class Inventory {
@@ -848,7 +873,6 @@ class Need {
         this.active = ko.observable(active);
     }
 }
-
 class Helper {
     static randomMinMaxGenerator(minValue, maxValue) {
         /*
@@ -937,8 +961,6 @@ class Helper {
         return current;
     }
 }
-
-
 class SaveGame {
 
     constructor(day, resilience, totalResilience, inventory, rumors, tradeItems, tradeItemsCount, needs, user) {
