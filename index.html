@@ -67,6 +67,20 @@
                     <h1>
                         <center>Web igrice - isprobavanje</center>
                     </h1>
+                    <div class="row" data-bind="foreach: menus" style="margin-top: 20px;">
+                        <div class="col-3">
+                            <div class="card" style="margin-bottom: 10px;;">
+                                <div class="card-body">
+                                    <h5 class="card-title" data-bind="text: name"></h5>
+                                    <p class="card-text" data-bind="text: description"></p>
+                                    <a href="#" class="btn btn-outline-dark" data-bind="click: $parent.menuClick">
+                                        <span data-bind="text: name"></span>
+                                    </a>
+                                </div>
+                                </div>
+                        </div>
+                    </div>
+                    
                     <!--/ko-->
                 </div>
                 <!--/ko-->
@@ -102,11 +116,11 @@
                 this.componentName = ko.observable();
                 this.routeName = ko.observable("Home");
                 this.menus = [
-                    { name: "Home", link: "", module: "" },
-                    { name: "Trader", link: "src/templates/trader.html", module: "./src/modules/trader.js" },
-                    { name: "Pero", link: "src/templates/pero.html", module: "./src/modules/pero.js" },
-                    { name: "Jura", link: "src/templates/jura.html", module: "./src/modules/jura.js" },
-                    { name: "Štef", link: "src/templates/stef.html", module: "./src/modules/stef.js" },
+                    { name: "Home", link: "", module: "", description: "Home" },
+                    { name: "Trader", link: "src/templates/trader.html", module: "./src/modules/trader.js", description: "Spasi selo trgujući" },
+                    { name: "Pero", link: "src/templates/pero.html", module: "./src/modules/pero.js", description: "Još ništa..." },
+                    { name: "Jura", link: "src/templates/jura.html", module: "./src/modules/jura.js", description: "Još ništa..."  },
+                    { name: "Štef", link: "src/templates/stef.html", module: "./src/modules/stef.js", description: "Još ništa..."  },
                 ]
 
                 this.menuClick = function (nesto) {
