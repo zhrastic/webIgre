@@ -5,18 +5,17 @@
     <title>Web igre</title>
 
     <meta charset="utf-8" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <link rel="shortcut icon" href="favicon.png" />
-
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-
-    <link href="lib/fontawesome/css/all.css" rel="stylesheet"> 
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+        integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+    <link href="lib/fontawesome/css/all.css" rel="stylesheet">
     <link href="css/dashboard.css" rel="stylesheet">
-
 </head>
 
 <body>
@@ -42,7 +41,8 @@
                 <div class="sidebar-sticky pt-3">
                     <ul class="nav flex-column" data-bind="foreach: menus" id="js-navigation">
                         <li class="nav-item">
-                            <a class="nav-link nav-link-sidebar" href="#" data-bind="click: $parent.menuClick, css: { active: $parent.routeName() == name }">
+                            <a class="nav-link nav-link-sidebar" href="#"
+                                data-bind="click: $parent.menuClick, css: { active: $parent.routeName() == name }">
                                 <span data-bind="text: name"></span>
                             </a>
                         </li>
@@ -61,148 +61,55 @@
                             Loading...
                             <i class="fas fa-spinner fa-pulse"></i>
                         </center>
-                    </h1>
-                    <!--/ko-->
-                     <!--ko ifnot: loading-->
-                    <h1>
-                        <center>Web igrice - isprobavanje</center>
-                    </h1>
-                    <div class="row" data-bind="foreach: menus" style="margin-top: 20px;">
-                        <div class="col-3">
-                            <div class="card" style="margin-bottom: 10px;;">
-                                <div class="card-body">
-                                    <h5 class="card-title" data-bind="text: name"></h5>
-                                    <p class="card-text" data-bind="text: description"></p>
-                                    <a href="#" class="btn btn-outline-dark" data-bind="click: $parent.menuClick">
-                                        <span data-bind="text: name"></span>
-                                    </a>
+                        </h1>
+                        <!--/ko-->
+                        <!--ko ifnot: loading-->
+                        <h1>
+                            <center>Web igrice - isprobavanje</center>
+                        </h1>
+                        <div class="row" data-bind="foreach: menus" style="margin-top: 20px;">
+                            <div class="col-3">
+                                <div class="card" style="margin-bottom: 10px;;">
+                                    <div class="card-body">
+                                        <h5 class="card-title" data-bind="text: name"></h5>
+                                        <p class="card-text" data-bind="text: description"></p>
+                                        <a href="#" class="btn btn-outline-dark" data-bind="click: $parent.menuClick">
+                                            <span data-bind="text: name"></span>
+                                        </a>
+                                    </div>
                                 </div>
-                                </div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <!--/ko-->
+                        <!--/ko-->
                 </div>
                 <!--/ko-->
             </main>
+            <div class="position-fixed bottom-0 right-0 p-3" style="z-index: 5; right: 0; bottom: 0;" data-bind="foreach: appMessages">
+                <div class="toast fade show" style="min-width:300px;">
+                    <div class="toast-header">
+                        <!--ko if: image-->
+                        <img data-bind="attr: {src: image}" class="rounded mr-2" alt="...">
+                        <!--/ko-->
+                        <strong class="mr-auto" data-bind="text: title"></strong>
+                        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close" data-bind="click: $parent.removeAppMessage">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="toast-body" data-bind="html: message">
+
+                    </div>
+                </div>
+            </div>
         </div>
 
     </div>
-
-
     <script type='text/javascript' src="lib/jquery/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" integrity="sha384-+YQ4JLhjyBLPDQt//I+STsc9iw4uQqACwlvpslubQzn4u2UU2UFM80nGisd026JF" crossorigin="anonymous"></script>
+    <script defer src="lib/fontawesome/js/all.js"></script>
     <script type='text/javascript' src="lib/knockout/knockout-3.5.1.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-        crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-        crossorigin="anonymous"></script>
-    
-    <script defer src="lib/fontawesome/js/all.js"></script> <!--load all styles -->
-    <script>
-        $(document).ready(function () {
-
-            window.indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
-            // DON'T use "var indexedDB = ..." if you're not in a function.
-            // Moreover, you may need references to some window.IDB* objects:
-            window.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction || {READ_WRITE: "readwrite"}; // This line should only be needed if it is needed to support the object's constants for older browsers
-            window.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange;
-            // (Mozilla has never prefixed these objects, so we don't need window.mozIDB*)
-
-            function main() {
-                let self = this;
-                this.loading = ko.observable(false);
-                this.componentName = ko.observable();
-                this.routeName = ko.observable("Home");
-                this.menus = [
-                    { name: "Home", link: "", module: "", description: "Home" },
-                    { name: "Trader", link: "src/templates/trader.html", module: "./src/modules/trader.js", description: "Spasi selo trgujući" },
-                    { name: "Pero", link: "src/templates/pero.html", module: "./src/modules/pero.js", description: "Još ništa..." },
-                    { name: "Jura", link: "src/templates/jura.html", module: "./src/modules/jura.js", description: "Još ništa..."  },
-                    { name: "Štef", link: "src/templates/stef.html", module: "./src/modules/stef.js", description: "Još ništa..."  },
-                ]
-
-                this.menuClick = function (nesto) {
-                    if (self.loading()) return;
-                    if (nesto.name == "Home") {
-                        self.componentName(null);
-                        self.routeName(nesto.name);
-                        return;
-                    }
-
-                    self.routeName(nesto.name);
-
-                    if (!ko.components.isRegistered(nesto.name)) {
-                        self.loading(true);
-                        self.componentName(null);
-                        $.get(nesto.link, function (htmlTemplate) {
-                            let module = null;
-                            import(nesto.module).then((module) => {
-                                switch (nesto.name) {
-                                    case "Pero":
-                                        module = new module.Pero();
-                                        break;
-                                    case "Jura":
-                                        module = new module.Jura();
-                                        break;
-                                    case "Štef":
-                                        module = new module.Stef();
-                                        break;
-                                    case "Trader":
-                                        module = new module.Trader();
-                                        break;
-                                }
-
-                                let activator = module.activate();
-                                //If activator is Promise, let it finish....
-                                if (activator && activator.then && typeof activator.then === "function") {
-                                    activator.then(rez => {
-                                        ko.components.register(nesto.name, {
-                                            viewModel: { instance: module },
-                                            template: htmlTemplate
-                                        });
-                                        self.componentName(nesto.name);
-                                        self.loading(false);
-                                    });
-                                } else {
-                                    ko.components.register(nesto.name, {
-                                        viewModel: { instance: module },
-                                        template: htmlTemplate
-                                    });
-                                    self.componentName(nesto.name);
-                                    self.loading(false);
-                                }
-                            });
-                        });
-                    } else {
-                        ko.components.get(nesto.name, (retComponent) => {
-                            
-                            if (retComponent) {
-                                let module = retComponent.createViewModel();
-                                //Call activate() method again. 
-                                let activator = module.activate();
-                                if (activator && activator.then && typeof activator.then === "function") {
-                                    activator.then(rez => {
-                                        self.componentName(nesto.name);
-                                        self.loading(false);
-                                    });
-                                } else {
-                                    self.componentName(nesto.name);
-                                    self.loading(false);
-                                }
-                            } else {
-                                self.componentName(nesto.name);
-                                self.loading(false);
-                            }
-                        });
-                    }
-                }
-
-            }
-            ko.applyBindings(new main());
-        });
-    </script>
+    <!--load all styles -->
+    <script type="module" src="src/modules/main.js"></script>
 </body>
 
 </html>

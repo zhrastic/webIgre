@@ -15,4 +15,4 @@ class Jura {
     }
 }
 
-export {Jura};
+export {Jura  as GameModule};

@@ -13,4 +13,4 @@ class Stef {
     }
 }
 
-export {Stef};
+export {Stef as GameModule};
