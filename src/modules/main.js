@@ -12,6 +12,7 @@ class App {
                 return;
             }
 
+            //self.appMessages([]);
             self.routeName(nesto.name);
 
             if (!ko.components.isRegistered(nesto.name)) {

@@ -1,3 +1,22 @@
+<style>
+    #canvas {
+        position: relative;
+        display: block;
+        margin: 0 auto;
+    }
+
+    #divText {
+        position: relative;
+        display: block;
+        margin: 0 auto;
+    }
+
+
+    hr.white {
+        border-top: 1px solid white;
+    }
+</style>
+
 <div class="container-fluid ">
     <div class="row">
         <div class="col-6">
@@ -6,7 +25,7 @@
             </h3>
         </div>
         <div class="col-6">
-            <div class="btn-group float-right" role="group" >
+            <div class="btn-group float-right" role="group">
                 <!--ko if: hasSavedGames-->
                 <button class="btn btn-danger btn-sm" data-bind="click: deleteGame">Obriši spremljenu igru</button>
                 <button class="btn btn-primary btn-sm" data-bind="click: loadGame">Učitaj spremljenu igru</button>
@@ -18,6 +37,24 @@
             </div>
         </div>
     </div>
-    <hr/>
+    <hr />
+    
+    <div id="divMain" class="bg-dark" style="padding: 20px 5px" data-bind="childrenComplete: afterBinding">
+        <div id="divCanvas">
+            <canvas id="canvas"  style="border:1px solid white;"></canvas>
+        </div>
+        <hr class="white"/>
+        <div id="divText" >
+            <div class="row">
+                <div class="col-6" style="border-right: 1px solid white; color: white; padding-left: 30px;">
+                    BLA
+                </div>
+                <div class="col-6" style="border-left: 1px solid white; color: white;">
+                    BLA
+                </div>
+            </div>
+            
+        </div>
+    </div>
     
 </div>

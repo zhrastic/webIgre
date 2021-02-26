@@ -19,9 +19,15 @@ class SpaceTrader {
 
     activate(pubSub) {
         this.pubSub = pubSub;
+    }
 
-        
-
+    afterBinding(nodes) {
+        let divCanvas = document.getElementById("divCanvas").getBoundingClientRect();
+        let canvas = document.getElementById("canvas");
+        let divText = document.getElementById("divText");
+        canvas.style.width = `${divCanvas.width - 100}px`;
+        canvas.style.height = `400px`;
+        //divText.style.width = canvas.style.width;
     }
 
     newGame() {

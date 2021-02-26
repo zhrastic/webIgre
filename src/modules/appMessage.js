@@ -8,7 +8,7 @@ class AppMessage {
         if (autoclose) {
             setTimeout(() => {
                 App.removeAppMessage(this);
-            }, 4000);
+            }, 3000);
         }
         
     }
