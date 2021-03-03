@@ -227,12 +227,14 @@ class SpaceTrader {
     }
 
     newGame() {
+        this.reset();
         let canvas = document.getElementById("canvas");
         let ctx = canvas.getContext("2d");
-        this.planets = [];
-        this.selectedPlanet(null);
-        this.drawPlanets(canvas, ctx);
-        let number = Helper.randomMinMaxGenerator(1, 1000)
+
+        let ship = new Ship(20, 20, 0, this.spaceShipImage);
+        this.ship(ship);
+
+        this.redrawCanvas();
         let msg = new AppMessage("SpaceTrader", `Nova igra staratana`, null);
         this.pubSub.publish("GameMessage", msg);
     }
