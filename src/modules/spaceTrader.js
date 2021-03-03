@@ -94,6 +94,7 @@ class SpaceTrader {
                 clearInterval(self.animationInterval);
                 this.animationInterval = null;
             }
+            self.ship().fuel(1000); //refill fuel, remove this later
             self.ship().setStartPos();
             this.animationInterval = setInterval(() => {
                 if (self.selectedPlanet()) {
@@ -102,6 +103,9 @@ class SpaceTrader {
                     self.redrawCanvas();
                 }
             }, 100);
+        } else {
+            let msg = new AppMessage("SpaceTrader", `Morate selektirati planetu da biste pokrenuli brod!`, null);
+            this.pubSub.publish("GameMessage", msg);
         }
     }
 
@@ -384,7 +388,6 @@ class Ship {
             parent.shipMove = false;
             this.angle = 90; //Ship position up;
             this.distanceToPlanet(0);
-            this.fuel(1000);
             this.setStartPos();
             return;
         }
@@ -433,6 +436,9 @@ class Ship {
         let distance = parent.getDistance(shipX, shipY, this.startX, this.startY);
         this.distanceToPlanet(distance);
         this.fuel(this.startFuel - distance);
+        if (this.fuel() <= 0) {
+            parent.stopShip();
+        }
     }
 }
 
