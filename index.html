@@ -69,13 +69,22 @@
                         </h1>
                         <div class="row" data-bind="foreach: menus" style="margin-top: 20px;">
                             <div class="col-3">
-                                <div class="card" style="margin-bottom: 10px;;">
+                                <div class="card" style="margin-bottom: 10px;">
                                     <div class="card-body">
-                                        <h5 class="card-title" data-bind="text: name"></h5>
-                                        <p class="card-text" data-bind="text: description"></p>
-                                        <a href="#" class="btn btn-outline-dark" data-bind="click: $parent.menuClick">
-                                            <span data-bind="text: name"></span>
-                                        </a>
+                                        <div class="row">
+                                            <div class="col-9">
+                                                <h5 class="card-title" data-bind="text: name"></h5>
+                                                <p class="card-text" data-bind="text: description"></p>
+                                                <a href="#" class="btn btn-outline-dark" data-bind="click: $parent.menuClick">
+                                                    <span data-bind="text: name"></span>
+                                                </a>
+                                            </div>
+                                            <div class="col-3">
+                                                <!--ko if: image-->
+                                                <img data-bind="attr: {src: image}" class="rounded img-thumbnail" alt="...">
+                                                <!--/ko-->
+                                            </div>
+                                        </div> 
                                     </div>
                                 </div>
                             </div>

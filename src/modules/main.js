@@ -84,11 +84,11 @@ class App {
         });
 
         this.menus = [
-            { name: "Home", link: "", module: "", description: "Home" },
-            { name: "Trader", link: `src/templates/trader.html?v=${version}`, module: `./trader.js?v=${version}`, description: "Spasi selo trgujući" },
-            { name: "Svemirski trgovac", link: `src/templates/spaceTrader.html?v=${version}`, module: `./spaceTrader.js?v=${version}`, description: "Trgujte putujući od planete do planete" },
-            { name: "Jura", link: `src/templates/jura.html?v=${version}`, module: `./jura.js?v=${version}`, description: "Još ništa..."  },
-            { name: "Štef", link: `src/templates/stef.html?v=${version}`, module: `./stef.js?v=${version}`, description: "Još ništa..."  },
+            { name: "Home", link: "", module: "", description: "Home", image: "" },
+            { name: "Trader", link: `src/templates/trader.html?v=${version}`, module: `./trader.js?v=${version}`, description: "Spasi selo trgujući", image: "img/Trader.png"},
+            { name: "Svemirski trgovac", link: `src/templates/spaceTrader.html?v=${version}`, module: `./spaceTrader.js?v=${version}`, description: "Trgujte putujući od planete do planete", image:"" },
+            { name: "Jura", link: `src/templates/jura.html?v=${version}`, module: `./jura.js?v=${version}`, description: "Još ništa...", image:""  },
+            { name: "Štef", link: `src/templates/stef.html?v=${version}`, module: `./stef.js?v=${version}`, description: "Još ništa..." , image:"" },
         ]
         
     }  
