@@ -20,9 +20,11 @@ class SpaceTrader {
 
         this.planets = [];
         this.selectedPlanet = ko.observable(null);
+        this.currentPlanet = ko.observable(null);
         this.ship = ko.observable(null);
-        this.shipMove = false;
         this.redraw = false
+        this.gameStatus = ko.observable(GameStatusEnum.GAME_PREPARE);
+        this.shipOnPlanetViews = ko.observable(ShipOnPlanetViews.MARKET);
 
     }
 
@@ -34,6 +36,9 @@ class SpaceTrader {
         this.pubSub = pubSub;
         this.spaceShipImage = new Image();
         let self = this;
+        this.gameViewTitle = ko.computed(() => {
+            return "Ne znam još..";
+        });
         this.spaceShipImage.addEventListener('load', function() {
 
             let ship = new Ship(20, 20, 0, self.spaceShipImage);
@@ -45,6 +50,7 @@ class SpaceTrader {
     }
     dispose() {
         this.reset();
+        this.gameViewTitle.dispose();
     }
  
     reset() {
@@ -55,7 +61,7 @@ class SpaceTrader {
         this.canvasRect = null;
         this.selectedPlanet(null);
         this.planets = [];
-        this.shipMove = false;
+        this.gameStatus(GameStatusEnum.GAME_PREPARE);
         this.ship(null);
         this.redraw = false;
     }
@@ -63,6 +69,7 @@ class SpaceTrader {
     afterBinding(nodes) {
         let divCanvas = document.getElementById("divCanvas").getBoundingClientRect();
         let canvas = document.getElementById("canvas");
+        let divGameView = document.getElementById("divGameView");
         canvas.style.width = `${divCanvas.width - 50}px`;
         canvas.style.height = `400px`;
         canvas.width = divCanvas.width - 50;
@@ -70,6 +77,8 @@ class SpaceTrader {
         let ctx = canvas.getContext("2d");
         this.canvasListeners(canvas, ctx);
         this.redrawCanvas();
+        this.gameStatus(GameStatusEnum.SHIP_READY);
+        
     }
 
 
@@ -89,16 +98,19 @@ class SpaceTrader {
 
     moveShip() {
         let self = this;
-        if (self.selectedPlanet() && !this.shipMove) {
+        if (self.currentPlanet() && self.selectedPlanet() && self.currentPlanet().planetName == self.selectedPlanet().planetName) return;
+        
+        if (self.selectedPlanet() && self.gameStatus() != GameStatusEnum.SHIP_MOVE) {
             if (self.animationInterval) {
                 clearInterval(self.animationInterval);
                 this.animationInterval = null;
             }
             self.ship().fuel(1000); //refill fuel, remove this later
             self.ship().setStartPos();
+            self.gameStatus(GameStatusEnum.SHIP_MOVE);
+            self.currentPlanet(null);
             this.animationInterval = setInterval(() => {
-                if (self.selectedPlanet()) {
-                    self.shipMove = true;
+                if (self.selectedPlanet()) {                  
                     self.ship().moveToPlanet(self.selectedPlanet(), self, 5);
                     self.redrawCanvas();
                 }
@@ -111,10 +123,31 @@ class SpaceTrader {
 
     stopShip() {
         clearInterval(this.animationInterval);
-        this.shipMove = false;
+        this.gameStatus(GameStatusEnum.SHIP_READY);
         this.ship().setStartPos();
         this.redrawCanvas();
     }
+
+    upgradeShip() {
+        this.shipOnPlanetViews(ShipOnPlanetViews.UPGRADE_SHIP);
+    }
+
+    getLoan() {
+        this.shipOnPlanetViews(ShipOnPlanetViews.LOAN);
+    }
+
+    getFuelOnPlanet() {
+        this.shipOnPlanetViews(ShipOnPlanetViews.FUEL);
+    }
+
+    goToMarket() {
+        this.shipOnPlanetViews(ShipOnPlanetViews.MARKET);
+    }
+
+    getSelectedPlanetMarketInfo() {
+        this.shipOnPlanetViews(ShipOnPlanetViews.MARKET_INFO);
+    }
+
 
     drawPlanets(canvas, ctx) {
         let self = this;
@@ -166,7 +199,7 @@ class SpaceTrader {
         canvas.addEventListener('mousemove', (event) => {
             if (event) {
                 if (self.canvasEvents) return;
-                if (self.shipMove) return;
+                if (self.gameStatus() == GameStatusEnum.SHIP_MOVE) return;
                 if (self.redraw) return;
                 self.canvasEvents = true;
                 
@@ -203,7 +236,7 @@ class SpaceTrader {
         canvas.addEventListener('click', (event) => {
             if (event) {
                 if (self.canvasEvents) return;
-                if (self.shipMove) return;
+                if (self.gameStatus() == GameStatusEnum.SHIP_MOVE) return;
                 if (self.redraw) return;
                 self.canvasEvents = true;
                 let selectedPlanet = null;
@@ -239,6 +272,7 @@ class SpaceTrader {
         this.ship(ship);
 
         this.redrawCanvas();
+        this.gameStatus(GameStatusEnum.SHIP_READY);
         let msg = new AppMessage("SpaceTrader", `Nova igra staratana`, null);
         this.pubSub.publish("GameMessage", msg);
     }
@@ -385,7 +419,9 @@ class Ship {
         if (matchX  && matchY) {
             clearInterval(parent.animationInterval);
             parent.animationInterval = null;
-            parent.shipMove = false;
+            parent.currentPlanet(parent.selectedPlanet());
+            parent.gameStatus(GameStatusEnum.SHIP_ONPLANET);
+            parent.goToMarket();
             this.angle = 90; //Ship position up;
             this.distanceToPlanet(0);
             this.setStartPos();
@@ -462,6 +498,24 @@ const PlanetTypeEnum = {
                 break;
         }
     }
+}
+
+const GameStatusEnum = {
+    GAME_PREPARE: "GAME_PREPARE",
+    SHIP_READY: "SHIP_READY",
+    SHIP_MOVE: "SHIP_MOVE",
+    SHIP_ATTACKED: "SHIP_ATTACKED",
+    SHIP_ONPLANET: "SHIP_ONPLANET"
+}
+
+const ShipOnPlanetViews = {
+    MARKET: "MARKET",
+    MARKET_INFO: "MARKET_INFO",
+    UPGRADE_SHIP: "UPGRADE_SHIP",
+    LOAN: "LOAN",
+    POLICE: "POLICE",
+    FUEL: "FUEL",
+
 }
 
 const PlanetNames = [

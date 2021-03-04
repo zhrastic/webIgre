@@ -37,8 +37,6 @@
                 <button class="btn btn-info btn-sm" data-bind="click: saveGame">Spremi igru</button>
                 <!--/ko-->
                 <button class="btn btn-success btn-sm" data-bind="click: newGame">Nova igra</button>
-                <button class="btn btn-primary btn-sm" data-bind="click: moveShip">Move ship</button>
-                <button class="btn btn-warning btn-sm" data-bind="click: stopShip">Stop ship</button>
             </div>
         </div>
     </div>
@@ -49,24 +47,45 @@
         <div class="row">
             <div class="col-lg-6 col-sm-12">
                 <div class="card text-white bg-dark border-light mb-3">
-                    <div class="card-header">Svemir</div>
+                    <div class="card-header">
+                        <h6>
+                            Galaxy Neka galaksija
+                        </h6> 
+                    </div>
                     <div class="card-body" id="divCanvas">
                         <canvas id="canvas" style="border:1px solid white; width:640px; height:480px;"></canvas>
+                    </div>
+                    <div class="card-footer">
+                        <span data-bind="text: gameStatus"></span>
                     </div>
                 </div>
             </div>
             <div class="col-lg-6 col-sm-12">
                 <div class="card text-white bg-dark border-light mb-3">
-                    <div class="card-header">Text</div>
-                    <div class="card-body">
-                        <p>
-                            mouseX: <span data-bind="text: canvasMouseX"></span>
-                        </p>
-                        <p>
-                            mouseY: <span data-bind="text: canvasMouseY"></span>
-                        </p>
+                    <div class="card-header" >
+                        <h6>
+                            <span data-bind="text: gameViewTitle"></span>
+                        </h6> 
+                    </div>
+                    <div class="card-body" id="divGameView" style="height: 435px;">
+                        <!--ko if: gameStatus() === "SHIP_READY" -->
                         <div class="row">
-                            <!--ko if: selectedPlanet -->
+                            <!--ko if: ship()-->
+                            <div class="col-12">
+                                Ship
+                                <ul>
+                                    <li>
+                                        Fuel: <span data-bind="text: ship().fuel"></span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <!--/ko-->
+                        </div>
+                        <!--/ko-->
+
+
+                        <!--ko if: gameStatus() === "SHIP_MOVE" && selectedPlanet -->
+                        <div class="row">
                             <div class="col-6">
                                 Planet
                                 <ul>
@@ -90,11 +109,173 @@
                                     </li>
                                 </ul>
                             </div>
+                        </div>
+                        <!--/ko-->
 
+
+                        <!--ko if: gameStatus() === "SHIP_ONPLANET" && currentPlanet -->
+                        <div class="row">
+                            <div class="col-12">
+                                <!--ko if: shipOnPlanetViews() == "MARKET"-->
+                                <div class="row">
+                                    <div class="col-6">
+                                        Planet
+                                        <ul>
+                                            <li>
+                                                Prouzvod 1
+                                            </li>
+                                            <li>
+                                                Prouzvod 2
+                                            </li>
+                                            <li>
+                                                Prouzvod 3
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-6">
+                                        Ship
+                                        <ul>
+                                            <li>
+                                                Prouzvod 5
+                                            </li>
+                                            <li>
+                                                Prouzvod 3
+                                            </li>
+                                            <li>
+                                                Prouzvod 1
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <!--/ko-->
+
+                                <!--ko if: shipOnPlanetViews() == "UPGRADE_SHIP"-->
+                                <div class="row">
+                                    <div class="col-6">
+                                        Komponente za upgrade
+                                        <ul>
+                                            <li>
+                                                Komponenta 1
+                                            </li>
+                                            <li>
+                                                Komponenta 2
+                                            </li>
+                                            <li>
+                                                Komponenta 3
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-6">
+                                        Ship
+                                        <ul>
+                                            <li>
+                                                Komponenta 5
+                                            </li>
+                                            <li>
+                                                v 3
+                                            </li>
+                                            <li>
+                                                Komponenta 1
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <!--/ko-->
+
+                                <!--ko if: shipOnPlanetViews() == "LOAN"-->
+                                <div class="row">
+                                    <div class="col-6">
+                                        LOAN OFFICE
+                                    
+                                    </div>
+                                    <div class="col-6">
+                                        Ship
+                                    </div>
+                                </div>
+                                <!--/ko-->
+
+                                <!--ko if: shipOnPlanetViews() == "FUEL"-->
+                                <div class="row">
+                                    <div class="col-6">
+                                        FUEL STATION
+                                    
+                                    </div>
+                                    <div class="col-6">
+                                        Ship
+                                    </div>
+                                </div>
+                                <!--/ko-->
+
+                                <!--ko if: shipOnPlanetViews() == "MARKET_INFO"-->
+                                <div class="row">
+                                    <div class="col-6">
+                                        Planet market info
+                                    
+                                    </div>
+                                    <div class="col-6">
+                                        Ship
+                                    </div>
+                                </div>
+                                <!--/ko-->
+                            </div>
+                        </div>
                         <!--/ko-->
                     </div>
+                    <div class="card-footer">
+                        <!--ko if: gameStatus() === "SHIP_READY" ||  gameStatus() === "SHIP_MOVE" -->
+                        <div class="btn-group btn-group-xs" role="group">
+                            <!--ko if: selectedPlanet-->
+                            <button class="btn btn-outline-light btn-xs" data-bind="click: moveShip">
+                                <i class="fas fa-play"></i>
+                                Move ship
+                            </button>
+                            <button class="btn btn-outline-light btn-xs" data-bind="click: stopShip, visible: gameStatus() === 'SHIP_MOVE'">
+                                <i class="fas fa-stop"></i>
+                                Stop ship
+                            </button>
+                            <button class="btn btn-outline-light btn-xs">
+                                <i class="fas fa-gas-pump"></i>
+                                Buy fuel
+                            </button>
+                            <!--/ko-->
+                            <!--ko ifnot: selectedPlanet-->
+                            <span>Morate odabrati planet...</span>
+                            <!--/ko-->
+                        </div>
+                        <!--/ko-->
+
+                        <!--ko if: gameStatus() === "SHIP_ONPLANET" &&  currentPlanet-->
+                        <div class="btn-group btn-group-xs" role="group">
+                            <button class="btn btn-outline-light btn-xs" data-bind="click: goToMarket, disable: shipOnPlanetViews() == 'MARKET'">
+                                <i class="fas fa-store-alt"></i>
+                                <span data-bind="css:{'text-success': shipOnPlanetViews() == 'MARKET'}">Market</span>
+                            </button>
+                            <button class="btn btn-outline-light btn-xs" data-bind="click: moveShip, disable: currentPlanet().planetName == selectedPlanet().planetName">
+                                <i class="fas fa-play"></i>
+                                <span>Move ship</span>
+                            </button>
+                            <button class="btn btn-outline-light btn-xs" data-bind="click: upgradeShip, disable: shipOnPlanetViews() == 'UPGRADE_SHIP'">
+                                <i class="fas fa-cogs"></i>
+                                <span data-bind="css:{'text-success': shipOnPlanetViews() == 'UPGRADE_SHIP'}">Upgrade ship</span>
+                            </button>
+                            <button class="btn btn-outline-light btn-xs" data-bind="click: getLoan, disable: shipOnPlanetViews() == 'LOAN'">
+                                <i class="far fa-money-bill-alt"></i>
+                                <span data-bind="css:{'text-success': shipOnPlanetViews() == 'LOAN'}">Loan</span>
+                            </button>
+                            <button class="btn btn-outline-light btn-xs" data-bind="click: getFuelOnPlanet, disable: shipOnPlanetViews() == 'FUEL'">
+                                <i class="fas fa-gas-pump"></i>
+                                <span data-bind="css:{'text-success': shipOnPlanetViews() == 'FUEL'}">Buy fuel</span>
+                            </button>
+                            <button class="btn btn-outline-light btn-xs" data-bind="click: getSelectedPlanetMarketInfo, disable: currentPlanet().planetName == selectedPlanet().planetName">
+                                <i class="fas fa-search-dollar"></i>
+                                <span data-bind="css:{'text-success': shipOnPlanetViews() == 'MARKET_INFO'}">Market info</span>
+                            </button>
+                        </div>
+                        <!--/ko-->
+
 
                     </div>
+
                 </div>
             </div>
         </div>
