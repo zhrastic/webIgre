@@ -184,7 +184,7 @@ class SpaceTrader {
         this.shipOnPlanetViews(ShipOnPlanetViews.FUEL);
     }
 
-    buyFuelInSpace(quantity) {
+    buyFuel(quantity, spaceOrPlanet) {
 
         if (this.ship().fuel() >= this.ship().fuelTankSize()) {
             this.ship().fuel(this.ship().fuelTankSize());
@@ -192,8 +192,8 @@ class SpaceTrader {
         }
 
         let money = this.ship().money();
-        let fuelUnitPrice = this.fuelInSpacePrice;
-        let fuelPrice = quantity * fuelUnitPrice;
+        let fuelUnitPrice = spaceOrPlanet == "SPACE" ? this.fuelInSpacePrice : this.currentPlanet().fuelUnitPrice;
+        let fuelPrice =  quantity * fuelUnitPrice;
         let fuelAfter = this.ship().fuel() + quantity;
         let gorivoDone = false;
         while (!gorivoDone) {
@@ -380,12 +380,14 @@ class Planet {
         this.y = y;
         this.planetType = planetType;
         this.planetTypeString = PlanetTypeEnum.getNameFromEnum(planetType);
-        this.innerRadius = Helper.randomMinMaxGenerator(1, 3);
-        this.outerRadius = Helper.randomMinMaxGenerator(8, 11);
+        this.innerRadius = Helper.randomMinMaxGenerator(1, 2);
+        this.outerRadius = Helper.randomMinMaxGenerator(6, 9);
         this.radius = this.outerRadius;
         this.planetName = planetName;
         this.isSelected = false;
         this.distanceFromShip = 0;
+        this.fuelUnitPrice = 1;
+        this.products = [];
         switch (planetType) {
             case PlanetTypeEnum.ADVANCED:
                 this.stopColor = "gray"
@@ -403,6 +405,9 @@ class Planet {
                 this.stopColor = "blue"
                 break;
         }
+
+        this.calculatePrices();
+
     }
 
     draw(ctx) {
@@ -438,6 +443,64 @@ class Planet {
         let absY = Math.pow(Math.abs(anotherY - this.y).toFixed(2), 2);
         return Math.sqrt(absX + absY) < (this.radius * 5) ;
     }
+
+    calculatePrices() {
+        this.fuelUnitPrice = Helper.randomMinMaxGenerator(1, 4);
+        let wares = null;
+        switch (this.planetType) {
+            case PlanetTypeEnum.ADVANCED:
+                wares = new Wares("Poljoprivredni proizvodi", Helper.randomMinMaxGenerator(10, 18), 0);
+                this.products.push(wares);
+                wares = new Wares("Insustrijsku proizvodi", Helper.randomMinMaxGenerator(10, 15), 0);
+                this.products.push(wares);
+                wares = new Wares("IT tehnologija", Helper.randomMinMaxGenerator(7, 15), 0);
+                this.products.push(wares);
+                wares = new Wares("Napredna tehnologija", Helper.randomMinMaxGenerator(3, 6), 0);
+                this.products.push(wares);
+                break;
+            case PlanetTypeEnum.AGRICULTURAL:
+                wares = new Wares("Poljoprivredni proizvodi", Helper.randomMinMaxGenerator(1,3), 0);
+                this.products.push(wares);
+                wares = new Wares("Insustrijsku proizvodi", Helper.randomMinMaxGenerator(7, 15), 0);
+                this.products.push(wares);
+                wares = new Wares("IT tehnologija", Helper.randomMinMaxGenerator(10,20), 0);
+                this.products.push(wares);
+                wares = new Wares("Napredna tehnologija", Helper.randomMinMaxGenerator(25,45), 0);
+                this.products.push(wares);
+
+                break;
+            case PlanetTypeEnum.INDUSTRIAL:
+                wares = new Wares("Poljoprivredni proizvodi", Helper.randomMinMaxGenerator(10, 17), 0);
+                this.products.push(wares);
+                wares = new Wares("Insustrijsku proizvodi", Helper.randomMinMaxGenerator(3, 7), 0);
+                this.products.push(wares);
+                wares = new Wares("IT tehnologija", Helper.randomMinMaxGenerator(10, 15), 0);
+                this.products.push(wares);
+                wares = new Wares("Napredna tehnologija", Helper.randomMinMaxGenerator(20, 30), 0);
+                this.products.push(wares);
+                break;
+            case PlanetTypeEnum.INFORMATION:
+                wares = new Wares("Poljoprivredni proizvodi", Helper.randomMinMaxGenerator(10, 17), 0);
+                this.products.push(wares);
+                wares = new Wares("Insustrijsku proizvodi", Helper.randomMinMaxGenerator(10, 25), 0);
+                this.products.push(wares);
+                wares = new Wares("IT tehnologija", Helper.randomMinMaxGenerator(3, 7), 0);
+                this.products.push(wares);
+                wares = new Wares("Napredna tehnologija", Helper.randomMinMaxGenerator(12, 24), 0);
+                this.products.push(wares);
+                break;
+            default:
+                wares = new Wares("Poljoprivredni proizvodi", Helper.randomMinMaxGenerator(1,3), 0);
+                this.products.push(wares);
+                wares = new Wares("Insustrijsku proizvodi", Helper.randomMinMaxGenerator(7, 15), 0);
+                this.products.push(wares);
+                wares = new Wares("IT tehnologija", Helper.randomMinMaxGenerator(10,20), 0);
+                this.products.push(wares);
+                wares = new Wares("Napredna tehnologija", Helper.randomMinMaxGenerator(25,45), 0);
+                this.products.push(wares);
+                break;
+        }
+    }
 }
 
 class Ship {
@@ -453,6 +516,12 @@ class Ship {
         this.shieldSize = ko.observable(1000);
         this.shield = ko.observable(1000);
         this.money = ko.observable(10000);
+        this.products = [
+            new Wares("Poljoprivredni proizvodi", 0, 0),
+            new Wares("Insustrijsku proizvodi",0, 0),
+            new Wares("IT tehnologija", 0, 0),
+            new Wares("Napredna tehnologija", 0, 0)
+        ]
         this.setStartPos();
     }
 
@@ -571,6 +640,14 @@ class Ship {
     }
 }
 
+class Wares {
+    constructor(name, price, quantity) {
+        this.name = name;
+        this.price = price;
+        this.quantity = quantity
+    }
+}
+
 const PlanetTypeEnum = {
 	AGRICULTURAL: 1,
 	INDUSTRIAL: 2,
@@ -611,6 +688,9 @@ const ShipOnPlanetViews = {
     FUEL: "FUEL",
 
 }
+
+
+
 
 const PlanetNames = [
     "Chisehines",
