@@ -28,6 +28,7 @@ class SpaceTrader {
         this.gameTime = ko.observable(0);
         this.shipOnPlanetViews = ko.observable(ShipOnPlanetViews.MARKET);
         this.fuelInSpacePrice = 10;
+        this.sellBuyQuantity = ko.observable("100");
     }
 
     static getObject() {
@@ -50,32 +51,37 @@ class SpaceTrader {
                 return "Brod je napadnut!!!"
             } else if (gameStatus == GameStatusEnum.SHIP_MOVE) {
                 let selectedPlanet = self.selectedPlanet();
-                return `Planet putuje prema odredištu: ${selectedPlanet.planetName}`;
+                return `Planet putuje prema odredištu: <span style='color: ${selectedPlanet.stopColor};'>${selectedPlanet.planetName}</span>`;
             } else if (gameStatus == GameStatusEnum.SHIP_READY) {
                 return "Brod je spreman za putovanje....";
             } else if (gameStatus == GameStatusEnum.SHIP_ONPLANET) {
                 let currentPlanet = self.currentPlanet();
-                let currentPlanetName = currentPlanet.planetName;
+                let currentPlanetHtml = `<span style='color: ${currentPlanet.stopColor};'>${currentPlanet.planetName}</span>`;
+                let selectedPlanet = self.selectedPlanet();
+                let selectedPlanetHtml = `<span style='color: ${selectedPlanet.stopColor};'>${selectedPlanet.planetName}</span>`;
+
                 if (shipOnPlanetViews == ShipOnPlanetViews.FUEL) {
-                    return `${currentPlanetName} : Stanica goriva`;
+                    return `${currentPlanetHtml} : Stanica goriva`;
                 } else if (shipOnPlanetViews == ShipOnPlanetViews.LOAN) {
-                    return `${currentPlanetName} : Ured banke, zajmovi`;
+                    return `${currentPlanetHtml} : Ured banke, zajmovi`;
                 } else if (shipOnPlanetViews == ShipOnPlanetViews.MARKET) {
-                    return `${currentPlanetName} : Tržnica`;
+                    return `${currentPlanetHtml} : Tržnica`;
                 } else if (shipOnPlanetViews == ShipOnPlanetViews.MARKET_INFO) {
-                    let selectedPlanet = self.selectedPlanet();
-                    let selectedPlanetName = selectedPlanet.planetName;
-                    return `${selectedPlanetName} : Tržnica selektirane planete`;
+                    return `${selectedPlanetHtml} : Tržnica selektirane planete`;
                 } else if (shipOnPlanetViews == ShipOnPlanetViews.POLICE) {
-                    return `${currentPlanetName} : Policijaska stanica`;
+                    return `${currentPlanetHtml} : Policijaska stanica`;
                 } else if (shipOnPlanetViews == ShipOnPlanetViews.UPGRADE_SHIP) {
-                    return `${currentPlanetName} : Dokovi. Nadogradnja broda.`;
+                    return `${currentPlanetHtml} : Dokovi. Nadogradnja broda.`;
                 }
             } else if (gameStatus == GameStatusEnum.SHIP_BUY_FUEL) {
                 return "Kupnja goriva u svemiru..."
             }
 
             return "Ne znam još..";
+        });
+        this.gameTimeFormated = ko.computed(() => {
+            let gameTime = this.gameTime().toString();
+            return gameTime.padStart(10, "0");
         });
         this.spaceShipImage.addEventListener('load', function() {
 
@@ -87,8 +93,10 @@ class SpaceTrader {
         this.spaceShipImage.src = 'img/spaceship.png'; // Set source path
     }
     dispose() {
-        this.reset();
         this.gameViewTitle.dispose();
+        this.gameTimeFormated.dispose();
+        this.ship().dispose();
+        this.reset();
     }
  
     reset() {
@@ -230,6 +238,46 @@ class SpaceTrader {
         this.shipOnPlanetViews(ShipOnPlanetViews.MARKET_INFO);
     }
 
+    buyProduct(product) {
+        let unitPrice = product.price();
+        let quantity = parseInt(this.sellBuyQuantity());
+        let remainingCargo = this.ship().cargoBaySize() - this.ship().usedCargo();
+        if (remainingCargo < quantity) {
+            quantity = remainingCargo;
+        }
+
+        let money = this.ship().money();
+        let price = quantity * unitPrice;
+        if (price > money) {
+            price = money;
+            quantity = Math.floor(price/unitPrice);
+        }
+
+        this.ship().money(this.ship().money() - price);
+
+        let findShipProduct = this.ship().products.find((itemShipProduct) => {
+            if (itemShipProduct.name == product.name) return true;
+        });
+
+        findShipProduct.quantity(findShipProduct.quantity() + quantity);
+        this.ship().usedCargo(this.ship().usedCargo() + quantity);
+
+    }
+    sellProduct(product) {
+        let quantity = parseInt(this.sellBuyQuantity());
+        if (quantity > product.quantity()) {
+            quantity = product.quantity();
+        }
+        let findPlanetProduct = this.currentPlanet().products.find((itemPlanetProduct) => {
+            if (itemPlanetProduct.name == product.name) return true;
+        });
+        let unitPrice = findPlanetProduct.price();
+        let price = quantity * unitPrice;
+        this.ship().money(this.ship().money() + price);
+        product.quantity(product.quantity() - quantity);
+        this.ship().usedCargo(this.ship().usedCargo() - quantity);
+
+    }
 
     drawPlanets(canvas, ctx) {
         let self = this;
@@ -410,6 +458,10 @@ class Planet {
 
     }
 
+    dispose() {
+
+    }
+
     draw(ctx) {
 
         let gradient = ctx.createRadialGradient(this.x, this.y, this.innerRadius, this.x, this.y, this.outerRadius);
@@ -449,54 +501,54 @@ class Planet {
         let wares = null;
         switch (this.planetType) {
             case PlanetTypeEnum.ADVANCED:
-                wares = new Wares("Poljoprivredni proizvodi", Helper.randomMinMaxGenerator(10, 18), 0);
+                wares = new Wares("Polj. pr.", Helper.randomMinMaxGenerator(1, 7), 0);
                 this.products.push(wares);
-                wares = new Wares("Insustrijsku proizvodi", Helper.randomMinMaxGenerator(10, 15), 0);
+                wares = new Wares("Ind. pr.", Helper.randomMinMaxGenerator(1, 7), 0);
                 this.products.push(wares);
-                wares = new Wares("IT tehnologija", Helper.randomMinMaxGenerator(7, 15), 0);
+                wares = new Wares("IT teh.", Helper.randomMinMaxGenerator(1, 9), 0);
                 this.products.push(wares);
-                wares = new Wares("Napredna tehnologija", Helper.randomMinMaxGenerator(3, 6), 0);
+                wares = new Wares("Nap. teh.", Helper.randomMinMaxGenerator(1, 3), 0);
                 this.products.push(wares);
                 break;
             case PlanetTypeEnum.AGRICULTURAL:
-                wares = new Wares("Poljoprivredni proizvodi", Helper.randomMinMaxGenerator(1,3), 0);
+                wares = new Wares("Polj. pr.", Helper.randomMinMaxGenerator(1,3), 0);
                 this.products.push(wares);
-                wares = new Wares("Insustrijsku proizvodi", Helper.randomMinMaxGenerator(7, 15), 0);
+                wares = new Wares("Ind. pr.", Helper.randomMinMaxGenerator(1, 7), 0);
                 this.products.push(wares);
-                wares = new Wares("IT tehnologija", Helper.randomMinMaxGenerator(10,20), 0);
+                wares = new Wares("IT teh.", Helper.randomMinMaxGenerator(1,9), 0);
                 this.products.push(wares);
-                wares = new Wares("Napredna tehnologija", Helper.randomMinMaxGenerator(25,45), 0);
+                wares = new Wares("Nap. teh.", Helper.randomMinMaxGenerator(1,12), 0);
                 this.products.push(wares);
 
                 break;
             case PlanetTypeEnum.INDUSTRIAL:
-                wares = new Wares("Poljoprivredni proizvodi", Helper.randomMinMaxGenerator(10, 17), 0);
+                wares = new Wares("Polj. pr.", Helper.randomMinMaxGenerator(1, 7), 0);
                 this.products.push(wares);
-                wares = new Wares("Insustrijsku proizvodi", Helper.randomMinMaxGenerator(3, 7), 0);
+                wares = new Wares("Ind. pr.", Helper.randomMinMaxGenerator(1, 3), 0);
                 this.products.push(wares);
-                wares = new Wares("IT tehnologija", Helper.randomMinMaxGenerator(10, 15), 0);
+                wares = new Wares("IT teh.", Helper.randomMinMaxGenerator(1, 9), 0);
                 this.products.push(wares);
-                wares = new Wares("Napredna tehnologija", Helper.randomMinMaxGenerator(20, 30), 0);
+                wares = new Wares("Nap. teh.", Helper.randomMinMaxGenerator(1, 12), 0);
                 this.products.push(wares);
                 break;
             case PlanetTypeEnum.INFORMATION:
-                wares = new Wares("Poljoprivredni proizvodi", Helper.randomMinMaxGenerator(10, 17), 0);
+                wares = new Wares("Polj. pr.", Helper.randomMinMaxGenerator(1, 7), 0);
                 this.products.push(wares);
-                wares = new Wares("Insustrijsku proizvodi", Helper.randomMinMaxGenerator(10, 25), 0);
+                wares = new Wares("Ind. pr.", Helper.randomMinMaxGenerator(1, 7), 0);
                 this.products.push(wares);
-                wares = new Wares("IT tehnologija", Helper.randomMinMaxGenerator(3, 7), 0);
+                wares = new Wares("IT teh.", Helper.randomMinMaxGenerator(1, 3), 0);
                 this.products.push(wares);
-                wares = new Wares("Napredna tehnologija", Helper.randomMinMaxGenerator(12, 24), 0);
+                wares = new Wares("Nap. teh.", Helper.randomMinMaxGenerator(1, 12), 0);
                 this.products.push(wares);
                 break;
             default:
-                wares = new Wares("Poljoprivredni proizvodi", Helper.randomMinMaxGenerator(1,3), 0);
+                wares = new Wares("Polj. pr.", Helper.randomMinMaxGenerator(1,3), 0);
                 this.products.push(wares);
-                wares = new Wares("Insustrijsku proizvodi", Helper.randomMinMaxGenerator(7, 15), 0);
+                wares = new Wares("Ind. pr.", Helper.randomMinMaxGenerator(1, 7), 0);
                 this.products.push(wares);
-                wares = new Wares("IT tehnologija", Helper.randomMinMaxGenerator(10,20), 0);
+                wares = new Wares("IT teh.", Helper.randomMinMaxGenerator(1,9), 0);
                 this.products.push(wares);
-                wares = new Wares("Napredna tehnologija", Helper.randomMinMaxGenerator(25,45), 0);
+                wares = new Wares("Nap. teh.", Helper.randomMinMaxGenerator(1,12), 0);
                 this.products.push(wares);
                 break;
         }
@@ -517,12 +569,18 @@ class Ship {
         this.shield = ko.observable(1000);
         this.money = ko.observable(10000);
         this.products = [
-            new Wares("Poljoprivredni proizvodi", 0, 0),
-            new Wares("Insustrijsku proizvodi",0, 0),
-            new Wares("IT tehnologija", 0, 0),
-            new Wares("Napredna tehnologija", 0, 0)
-        ]
+            new Wares("Polj. pr.", 0, 0),
+            new Wares("Ind. pr.",0, 0),
+            new Wares("IT teh.", 0, 0),
+            new Wares("Nap. teh.", 0, 0)
+        ];
+        let self = this;
+        this.usedCargo = ko.observable(0);
         this.setStartPos();
+    }
+
+    dispose() {
+
     }
 
     draw(ctx) {
@@ -643,8 +701,8 @@ class Ship {
 class Wares {
     constructor(name, price, quantity) {
         this.name = name;
-        this.price = price;
-        this.quantity = quantity
+        this.price = ko.observable(price);
+        this.quantity = ko.observable(quantity)
     }
 }
 
