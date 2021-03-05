@@ -56,7 +56,51 @@
                         <canvas id="canvas" style="border:1px solid white; width:640px; height:480px;"></canvas>
                     </div>
                     <div class="card-footer">
-                        <span data-bind="text: gameStatus"></span>
+                        <div class="row">
+                            <div class="col-4">
+                                <div>
+                                    Time: <span data-bind="text: gameTime"></span>, 
+                                </div>
+                                <div>
+                                    Status: <span data-bind="text: gameStatus"></span>
+                                </div>
+                                
+                            </div>
+                            <div class="col-4">
+                                <div>
+                                    Selected planet: 
+                                     <!--ko if: selectedPlanet-->
+                                    <span data-bind="text: selectedPlanet().planetName"></span>
+                                    <!--/ko-->
+                                </div>
+                                <div>
+                                    Ship on planet: 
+                                    <!--ko if: currentPlanet-->
+                                    <span data-bind="text: currentPlanet().planetName"></span>
+                                    <!--/ko-->
+                                </div>
+                                <div>
+                                    Mouse over: 
+                                    <!--ko if: mouseOverPlanet()-->
+                                    <span  data-bind="text: mouseOverPlanet().planetName"></span>
+                                    <!--/ko-->
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <!-- ko if: ship-->
+                                <div>
+                                    Money: <span  data-bind="text: ship().money"></span> credits.
+                                </div>
+                                <div>
+                                    Ship fuel: <span  data-bind="text: ship().fuel"></span>/<span  data-bind="text: ship().fuelTankSize"></span>
+                                </div>
+                                <div>
+                                    Ship shield: <span  data-bind="text: ship().shield"></span>/<span  data-bind="text: ship().shieldSize"></span>
+                                </div>
+                                <!--/ko-->
+                            </div>
+                        </div>
+                        
                     </div>
                 </div>
             </div>
@@ -67,7 +111,7 @@
                             <span data-bind="text: gameViewTitle"></span>
                         </h6> 
                     </div>
-                    <div class="card-body" id="divGameView" style="height: 435px;">
+                    <div class="card-body" id="divGameView" style="height: 480px;">
                         <!--ko if: gameStatus() === "SHIP_READY" -->
                         <div class="row">
                             <!--ko if: ship()-->
@@ -83,6 +127,60 @@
                         </div>
                         <!--/ko-->
 
+                        <!--ko if: gameStatus() === "SHIP_BUY_FUEL" -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <h4>Kupnja goriva u svemiru</h4>
+                                        <h6>To je najskuplja kupnja goriva!!!</h6>
+                                        <h7>
+                                            Cijena goriva je <span class="font-weight-bold" data-bind="text: fuelInSpacePrice"></span> po jedinici;
+                                        </h7>
+                                    </div>
+                                </div>
+                                <div class="row" style="margin-top:30px; margin-bottom: 30px;">
+                                    <div class="col-4">
+                                        <button class="btn btn-outline-light btn-xs" data-bind="click: function(data, event) { buyFuelInSpace(10, data, event)}">
+                                            <i class="fas fa-gas-pump"></i>
+                                            <span>Fuel + 10</span>
+                                        </button>
+                                    </div>
+                                    <div class="col-4">
+                                        <button class="btn btn-outline-light btn-xs" data-bind="click: function(data, event) { buyFuelInSpace(100, data, event)}">
+                                            <i class="fas fa-gas-pump"></i>
+                                            <span>Fuel + 100</span>
+                                        </button>
+                                    </div>
+                                    <div class="col-4">
+                                        <button class="btn btn-outline-light btn-xs" data-bind="click: function(data, event) { buyFuelInSpace(1000, data, event)}">
+                                            <i class="fas fa-gas-pump"></i>
+                                            <span>Fuel + 1000</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-12">
+                                        <span>
+                                            Ne morate se bojati odabrati gumb sa više goriva nego što stane u vaš rezervoar - goriva možete kupiti maksimalno koliki je kapacitet rezervoara.
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-12">
+                                        <ul>
+                                            <li>
+                                                Trenutno imate goriva: <span data-bind="text: ship().fuel()"> </span>
+                                            </li>
+                                            <li>
+                                                Kapacitet rezervoara: <span data-bind="text: ship().fuelTankSize()"> </span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--/ko-->
 
                         <!--ko if: gameStatus() === "SHIP_MOVE" && selectedPlanet -->
                         <div class="row">
@@ -222,20 +320,26 @@
                         <!--/ko-->
                     </div>
                     <div class="card-footer">
-                        <!--ko if: gameStatus() === "SHIP_READY" ||  gameStatus() === "SHIP_MOVE" -->
+                        <!--ko if: gameStatus() === "SHIP_READY" ||  gameStatus() === "SHIP_MOVE" ||  gameStatus() === "SHIP_BUY_FUEL" -->
                         <div class="btn-group btn-group-xs" role="group">
                             <!--ko if: selectedPlanet-->
-                            <button class="btn btn-outline-light btn-xs" data-bind="click: moveShip">
+                            <button class="btn btn-outline-light btn-xs" data-bind="click: moveShip, disable: gameStatus() == 'SHIP_MOVE'">
                                 <i class="fas fa-play"></i>
-                                Move ship
+                                <span data-bind="css:{'text-success': gameStatus() == 'SHIP_MOVE'}">
+                                    Move ship
+                                </span>
                             </button>
-                            <button class="btn btn-outline-light btn-xs" data-bind="click: stopShip, visible: gameStatus() === 'SHIP_MOVE'">
+                            <button class="btn btn-outline-light btn-xs" data-bind="click: stopShip, disable: gameStatus() === 'SHIP_READY'">
                                 <i class="fas fa-stop"></i>
-                                Stop ship
+                                <span data-bind="css:{'text-success': gameStatus() == 'SHIP_READY'}">
+                                    Stop ship
+                                </span>
                             </button>
-                            <button class="btn btn-outline-light btn-xs">
+                            <button class="btn btn-outline-light btn-xs" data-bind="click: getFuelInSpace, disable: (gameStatus() == 'SHIP_MOVE' || gameStatus() == 'SHIP_BUY_FUEL')">
                                 <i class="fas fa-gas-pump"></i>
-                                Buy fuel
+                                <span data-bind="css:{'text-success': gameStatus() == 'SHIP_BUY_FUEL'}">
+                                    Buy fuel
+                                </span>
                             </button>
                             <!--/ko-->
                             <!--ko ifnot: selectedPlanet-->
