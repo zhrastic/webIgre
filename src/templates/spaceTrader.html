@@ -329,7 +329,7 @@
                                     Move ship
                                 </span>
                             </button>
-                            <button class="btn btn-outline-light btn-xs" data-bind="click: stopShip, disable: gameStatus() === 'SHIP_READY'">
+                            <button class="btn btn-outline-light btn-xs" data-bind="click: stopShip, disable: gameStatus() === 'SHIP_READY' || gameStatus() == 'SHIP_BUY_FUEL'">
                                 <i class="fas fa-stop"></i>
                                 <span data-bind="css:{'text-success': gameStatus() == 'SHIP_READY'}">
                                     Stop ship
