@@ -59,30 +59,29 @@
                         <div class="row">
                             <div class="col-4">
                                 <div>
-                                    Time: <span data-bind="text: gameTime"></span>, 
+                                    Time: <span data-bind="text: gameTimeFormated"></span>, 
                                 </div>
                                 <div>
                                     Status: <span data-bind="text: gameStatus"></span>
                                 </div>
-                                
                             </div>
                             <div class="col-4">
                                 <div>
                                     Selected planet: 
                                      <!--ko if: selectedPlanet-->
-                                    <span data-bind="text: selectedPlanet().planetName"></span>
+                                    <span data-bind="text: selectedPlanet().planetName, style:{color: selectedPlanet().stopColor}"></span>
                                     <!--/ko-->
                                 </div>
                                 <div>
                                     Ship on planet: 
                                     <!--ko if: currentPlanet-->
-                                    <span data-bind="text: currentPlanet().planetName"></span>
+                                    <span data-bind="text: currentPlanet().planetName, style:{color: currentPlanet().stopColor}"></span>
                                     <!--/ko-->
                                 </div>
                                 <div>
                                     Mouse over: 
                                     <!--ko if: mouseOverPlanet()-->
-                                    <span  data-bind="text: mouseOverPlanet().planetName"></span>
+                                    <span  data-bind="text: mouseOverPlanet().planetName, style:{color: mouseOverPlanet().stopColor}"></span>
                                     <!--/ko-->
                                 </div>
                             </div>
@@ -108,7 +107,7 @@
                 <div class="card text-white bg-dark border-light mb-3">
                     <div class="card-header" >
                         <h6>
-                            <span data-bind="text: gameViewTitle"></span>
+                            <span data-bind="html: gameViewTitle"></span>
                         </h6> 
                     </div>
                     <div class="card-body" id="divGameView" style="height: 480px;">
@@ -217,6 +216,36 @@
                                 <!--ko if: shipOnPlanetViews() == "MARKET"-->
                                 <div class="row">
                                     <div class="col-6">
+                                        Tovar: <span data-bind="text: ship().usedCargo()"></span> / <span data-bind="text: ship().cargoBaySize()"></span>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="float-right">
+                                            Novac: <span class="" data-bind="text: ship().money()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row" style="margin-top: 10px; margin-bottom: 10px; padding: 5px 5px; border-top: 1px solid white; border-bottom: 1px solid white">
+                                    <div class="col-12">
+                                        Količina kojom trgujete: 
+                                        <div class="form-check form-check-inline">
+                                            <label class="form-check-label">
+                                                <input class="form-check-input" type="radio" name="inlinesellBuyQuantity" value="10" data-bind="checked: sellBuyQuantity"> 10
+                                            </label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <label class="form-check-label">
+                                                <input class="form-check-input" type="radio" name="inlinesellBuyQuantity" value="100" data-bind="checked: sellBuyQuantity"> 100
+                                            </label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <label class="form-check-label">
+                                                <input class="form-check-input" type="radio" name="inlinesellBuyQuantity" value="1000" data-bind="checked: sellBuyQuantity"> 1000
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
                                         <div class="row">
                                             <div class="col-6">
                                                 <span class="font-weight-bold">PLANET:</span>
@@ -243,7 +272,9 @@
                                                         <span data-bind="text: price"></span>
                                                     </td>
                                                     <td>
-                                                        <i class="far fa-plus-square" style="cursor: pointer;"></i>
+                                                        <button class="btn btn-outline-light btn-xs" data-bind="click: $parent.buyProduct.bind($parent, $data)">
+                                                            <i class="fas fa-plus"></i>
+                                                        </button>
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -252,12 +283,10 @@
                                     </div>
                                     <div class="col-6">
                                         <div class="row">
-                                            <div class="col-6">
+                                            <div class="col-12">
                                                 <span class="font-weight-bold">BROD:</span>
                                             </div>
-                                            <div class="col-6 float-right">
-                                                <span data-bind="text: ship().money()"></span>
-                                            </div>
+                                            
                                         </div>
                                         
                                         <table class="table table-striped table-dark">
@@ -276,10 +305,12 @@
                                                         <span data-bind="text: name"></span>
                                                     </td>
                                                     <td style="text-align: right;">
-                                                        <span data-bind="text: price"></span>
+                                                        <span data-bind="text: quantity"></span>
                                                     </td>
                                                     <td>
-                                                        <i class="far fa-minus-square" style="cursor: pointer;"></i>
+                                                        <button class="btn btn-outline-light btn-xs" title="Prodaj"  data-bind="click: $parent.sellProduct.bind($parent, $data)">
+                                                            <i class="fas fa-minus"></i>
+                                                        </button>
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -387,13 +418,101 @@
                                 <!--/ko-->
 
                                 <!--ko if: shipOnPlanetViews() == "MARKET_INFO"-->
-                                <div class="row">
+                                <div class="row" style="border-bottom: 1px solid white; margin-bottom: 10px;">
                                     <div class="col-6">
-                                        Planet market info
-                                        
+                                        Tovar: <span data-bind="text: ship().usedCargo()"></span> / <span data-bind="text: ship().cargoBaySize()"></span>
                                     </div>
                                     <div class="col-6">
-                                        Ship
+                                        <div class="float-right">
+                                            Novac: <span class="" data-bind="text: ship().money()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <div class="row">
+                                            <div class="col-12"> 
+                                                <span class="font-weight-bold">PLANET </span>
+                                                <span class="font-weight-bold" data-bind="text: selectedPlanet().planetName, style: { color: selectedPlanet().stopColor}"></span>
+                                                <span class="float-right">[SEL]</span>
+                                            </div>
+                                        </div>
+                                       
+                                        <table class="table table-striped table-dark">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">Naziv</th>
+                                                    <th scope="col" style="text-align: right;">Cij</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody data-bind="foreach: selectedPlanet().products">
+                                                <tr>
+                                                    <td>
+                                                        <span data-bind="text: name"></span>
+                                                    </td>
+                                                    <td style="text-align: right;">
+                                                        <span data-bind="text: price"></span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <span class="font-weight-bold">BROD:</span>
+                                            </div>
+                                            
+                                        </div>
+                                        
+                                        <table class="table table-striped table-dark">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">Naziv</th>
+                                                    <th scope="col" style="text-align: right;">Kol</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody data-bind="foreach: ship().products">
+                                                <tr>
+                                                    <td>
+                                                        <span data-bind="text: name"></span>
+                                                    </td>
+                                                    <td style="text-align: right;">
+                                                        <span data-bind="text: quantity"></span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="row">
+                                            <div class="col-12"> 
+                                                <span class="font-weight-bold">PLANET </span>
+                                                <span class="font-weight-bold" data-bind="text: currentPlanet().planetName, style: { color: currentPlanet().stopColor}"></span>
+                                                <span class="float-right">[BROD]</span>
+                                            </div>
+                                        </div>
+                                       
+                                        <table class="table table-striped table-dark">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">Naziv</th>
+                                                    <th scope="col" style="text-align: right;">Cij</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody data-bind="foreach: currentPlanet().products">
+                                                <tr>
+                                                    <td>
+                                                        <span data-bind="text: name"></span>
+                                                    </td>
+                                                    <td style="text-align: right;">
+                                                        <span data-bind="text: price"></span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        
                                     </div>
                                 </div>
                                 <!--/ko-->
@@ -452,7 +571,7 @@
                                 <i class="fas fa-gas-pump"></i>
                                 <span data-bind="css:{'text-success': shipOnPlanetViews() == 'FUEL'}">Buy fuel</span>
                             </button>
-                            <button class="btn btn-outline-light btn-xs" data-bind="click: getSelectedPlanetMarketInfo, disable: currentPlanet().planetName == selectedPlanet().planetName">
+                            <button class="btn btn-outline-light btn-xs" data-bind="click: getSelectedPlanetMarketInfo">
                                 <i class="fas fa-search-dollar"></i>
                                 <span data-bind="css:{'text-success': shipOnPlanetViews() == 'MARKET_INFO'}">Market info</span>
                             </button>
