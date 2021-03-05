@@ -21,11 +21,13 @@ class SpaceTrader {
         this.planets = [];
         this.selectedPlanet = ko.observable(null);
         this.currentPlanet = ko.observable(null);
+        this.mouseOverPlanet = ko.observable(null);
         this.ship = ko.observable(null);
         this.redraw = false
         this.gameStatus = ko.observable(GameStatusEnum.GAME_PREPARE);
+        this.gameTime = ko.observable(0);
         this.shipOnPlanetViews = ko.observable(ShipOnPlanetViews.MARKET);
-
+        this.fuelInSpacePrice = 10;
     }
 
     static getObject() {
@@ -37,6 +39,42 @@ class SpaceTrader {
         this.spaceShipImage = new Image();
         let self = this;
         this.gameViewTitle = ko.computed(() => {
+
+            let gameStatus = self.gameStatus();
+            let shipOnPlanetViews = self.shipOnPlanetViews();
+
+            if (gameStatus == GameStatusEnum.GAME_PREPARE) {
+                return "Igra se priprema..."
+            }
+            else if (gameStatus == GameStatusEnum.SHIP_ATTACKED) {
+                return "Brod je napadnut!!!"
+            } else if (gameStatus == GameStatusEnum.SHIP_MOVE) {
+                let selectedPlanet = self.selectedPlanet();
+                return `Planet putuje prema odredištu: ${selectedPlanet.planetName}`;
+            } else if (gameStatus == GameStatusEnum.SHIP_READY) {
+                return "Brod je spreman za putovanje....";
+            } else if (gameStatus == GameStatusEnum.SHIP_ONPLANET) {
+                let currentPlanet = self.currentPlanet();
+                let currentPlanetName = currentPlanet.planetName;
+                if (shipOnPlanetViews == ShipOnPlanetViews.FUEL) {
+                    return `${currentPlanetName} : Stanica goriva`;
+                } else if (shipOnPlanetViews == ShipOnPlanetViews.LOAN) {
+                    return `${currentPlanetName} : Ured banke, zajmovi`;
+                } else if (shipOnPlanetViews == ShipOnPlanetViews.MARKET) {
+                    return `${currentPlanetName} : Tržnica`;
+                } else if (shipOnPlanetViews == ShipOnPlanetViews.MARKET_INFO) {
+                    let selectedPlanet = self.selectedPlanet();
+                    let selectedPlanetName = selectedPlanet.planetName;
+                    return `${selectedPlanetName} : Tržnica selektirane planete`;
+                } else if (shipOnPlanetViews == ShipOnPlanetViews.POLICE) {
+                    return `${currentPlanetName} : Policijaska stanica`;
+                } else if (shipOnPlanetViews == ShipOnPlanetViews.UPGRADE_SHIP) {
+                    return `${currentPlanetName} : Dokovi. Nadogradnja broda.`;
+                }
+            } else if (gameStatus == GameStatusEnum.SHIP_BUY_FUEL) {
+                return "Kupnja goriva u svemiru..."
+            }
+
             return "Ne znam još..";
         });
         this.spaceShipImage.addEventListener('load', function() {
@@ -101,20 +139,26 @@ class SpaceTrader {
         if (self.currentPlanet() && self.selectedPlanet() && self.currentPlanet().planetName == self.selectedPlanet().planetName) return;
         
         if (self.selectedPlanet() && self.gameStatus() != GameStatusEnum.SHIP_MOVE) {
+            
             if (self.animationInterval) {
                 clearInterval(self.animationInterval);
                 this.animationInterval = null;
             }
-            self.ship().fuel(1000); //refill fuel, remove this later
-            self.ship().setStartPos();
-            self.gameStatus(GameStatusEnum.SHIP_MOVE);
-            self.currentPlanet(null);
-            this.animationInterval = setInterval(() => {
-                if (self.selectedPlanet()) {                  
-                    self.ship().moveToPlanet(self.selectedPlanet(), self, 5);
-                    self.redrawCanvas();
-                }
-            }, 100);
+
+            if (self.ship().fuel() > 0) {
+                self.ship().setStartPos();
+                self.gameStatus(GameStatusEnum.SHIP_MOVE);
+                self.currentPlanet(null);
+                this.animationInterval = setInterval(() => {
+                    if (self.selectedPlanet()) {                  
+                        self.ship().moveToPlanet(self.selectedPlanet(), self, 5);
+                        self.redrawCanvas();
+                    }
+                }, 100);
+            } else {
+                let msg = new AppMessage("SpaceTrader", `Nemate dovoljno goriva za pokrenuti brod! <br/>Kupite gorivo!`, null);
+                this.pubSub.publish("GameMessage", msg);
+            }
         } else {
             let msg = new AppMessage("SpaceTrader", `Morate selektirati planetu da biste pokrenuli brod!`, null);
             this.pubSub.publish("GameMessage", msg);
@@ -138,6 +182,44 @@ class SpaceTrader {
 
     getFuelOnPlanet() {
         this.shipOnPlanetViews(ShipOnPlanetViews.FUEL);
+    }
+
+    buyFuelInSpace(quantity) {
+
+        if (this.ship().fuel() >= this.ship().fuelTankSize()) {
+            this.ship().fuel(this.ship().fuelTankSize());
+            return;
+        }
+
+        let money = this.ship().money();
+        let fuelUnitPrice = this.fuelInSpacePrice;
+        let fuelPrice = quantity * fuelUnitPrice;
+        let fuelAfter = this.ship().fuel() + quantity;
+        let gorivoDone = false;
+        while (!gorivoDone) {
+            if (fuelPrice > money) {
+                let diffMoney = money - fuelPrice;
+                quantity = Math.floor(diffMoney/fuelUnitPrice);
+                fuelPrice = quantity * fuelUnitPrice;
+                fuelAfter = this.ship().fuel() + quantity;
+                continue;
+            }
+
+            if (fuelAfter > this.ship().fuelTankSize()) {
+                quantity = this.ship().fuelTankSize() - this.ship().fuel();
+                fuelPrice = quantity * fuelUnitPrice;
+                fuelAfter = this.ship().fuel() + quantity;
+                continue;
+            }
+
+            gorivoDone = true;
+        }
+        this.ship().fuel(this.ship().fuel() + quantity);
+        this.ship().money(this.ship().money() - fuelPrice);
+    }
+
+    getFuelInSpace() {
+        this.gameStatus(GameStatusEnum.SHIP_BUY_FUEL);
     }
 
     goToMarket() {
@@ -218,17 +300,21 @@ class SpaceTrader {
                 self.canvasMouseX = x.toFixed(0);
                 self.canvasMouseY = y.toFixed(0);
                 let isInside = false;
+                let chosenPlanet = null;
                 for (let i = 0; i < self.planets.length; i++) {
                     let planet = self.planets[i];
                     if (planet.isInsideCircle(self.canvasMouseX, self.canvasMouseY)) {
                         isInside = true;
+                        chosenPlanet = planet;
                         break;
                     }
                 }
                 if (isInside) {
                     event.currentTarget.style.cursor = "pointer";
+                    self.mouseOverPlanet(chosenPlanet);
                 } else {
                     event.currentTarget.style.cursor = "default";
+                    self.mouseOverPlanet(null);
                 }
                 self.canvasEvents = false;
             }
@@ -361,7 +447,12 @@ class Ship {
         this.angle = angle;
         this.shipImage = shipImage;
         this.distanceToPlanet = ko.observable(0);
+        this.fuelTankSize = ko.observable(1000)
         this.fuel = ko.observable(1000);
+        this.cargoBaySize = ko.observable(1000);
+        this.shieldSize = ko.observable(1000);
+        this.shield = ko.observable(1000);
+        this.money = ko.observable(10000);
         this.setStartPos();
     }
 
@@ -399,6 +490,7 @@ class Ship {
     }
 
     moveToPlanet(selectedPlanet, parent, speed = 1) {
+        parent.gameTime(parent.gameTime() + 1);
         let planetX = selectedPlanet.x;
         let planetY = selectedPlanet.y;
         let shipX = this.shipX || 0;
@@ -473,6 +565,7 @@ class Ship {
         this.distanceToPlanet(distance);
         this.fuel(this.startFuel - distance);
         if (this.fuel() <= 0) {
+            this.fuel(0);
             parent.stopShip();
         }
     }
@@ -504,6 +597,7 @@ const GameStatusEnum = {
     GAME_PREPARE: "GAME_PREPARE",
     SHIP_READY: "SHIP_READY",
     SHIP_MOVE: "SHIP_MOVE",
+    SHIP_BUY_FUEL: "SHIP_BUY_FUEL",
     SHIP_ATTACKED: "SHIP_ATTACKED",
     SHIP_ONPLANET: "SHIP_ONPLANET"
 }
