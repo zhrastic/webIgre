@@ -27,8 +27,15 @@ class SpaceTrader {
         this.gameStatus = ko.observable(GameStatusEnum.GAME_PREPARE);
         this.gameTime = ko.observable(0);
         this.shipOnPlanetViews = ko.observable(ShipOnPlanetViews.MARKET);
-        this.fuelInSpacePrice = 10;
-        this.sellBuyQuantity = ko.observable("100");
+        this.shipOnBattleViews = ko.observable(ShipOnBattleViews.DECISION);
+        this.fuelInSpacePrice = ko.observable(50);
+        this.sellBuyQuantity = ko.observable("1000");
+        this.pirates = ko.observableArray([]);
+        this.piratesFightRound = ko.observable(0);
+        this.piratesFightType = ko.observable("FIGHT");
+        this.fightMessage = ko.observable("");
+        this.fightReward = ko.observable(0);
+        this.attackFrequency = 10;
     }
 
     static getObject() {
@@ -71,7 +78,7 @@ class SpaceTrader {
                 } else if (shipOnPlanetViews == ShipOnPlanetViews.POLICE) {
                     return `${currentPlanetHtml} : Policijaska stanica`;
                 } else if (shipOnPlanetViews == ShipOnPlanetViews.UPGRADE_SHIP) {
-                    return `${currentPlanetHtml} : Dokovi. Nadogradnja broda.`;
+                    return `${currentPlanetHtml} : Dokovi. Nadogradnja i popravak broda.`;
                 }
             } else if (gameStatus == GameStatusEnum.SHIP_BUY_FUEL) {
                 return "Kupnja goriva u svemiru..."
@@ -90,11 +97,23 @@ class SpaceTrader {
             self.redrawCanvas();
             
         }, false);
+        this.distanceSelectedShip = ko.computed(() => {
+            let selected = this.selectedPlanet();
+            let ship = this.ship();
+            if (selected && ship) {
+                let currentPlanet = this.currentPlanet();
+                if (currentPlanet && currentPlanet.planetName == selected.planetName) return 0;
+                return this.getDistance(ship.shipX, ship.shipY, selected.x, selected.y);
+            } else {
+                return 0;
+            }
+        });
         this.spaceShipImage.src = 'img/spaceship.png'; // Set source path
     }
     dispose() {
         this.gameViewTitle.dispose();
         this.gameTimeFormated.dispose();
+        this.distanceSelectedShip.dispose();
         this.ship().dispose();
         this.reset();
     }
@@ -127,7 +146,6 @@ class SpaceTrader {
         
     }
 
-
     redrawCanvas() {
         let canvas = document.getElementById("canvas");
         if (canvas) {
@@ -155,6 +173,12 @@ class SpaceTrader {
 
             if (self.ship().fuel() > 0) {
                 self.ship().setStartPos();
+                let randomAttack = Helper.randomMinMaxGenerator(0, 100);
+                if (randomAttack <= this.attackFrequency) {
+                    self.ship().attacked = true;
+                } else {
+                    self.ship().attacked = false;
+                }
                 self.gameStatus(GameStatusEnum.SHIP_MOVE);
                 self.currentPlanet(null);
                 this.animationInterval = setInterval(() => {
@@ -176,12 +200,101 @@ class SpaceTrader {
     stopShip() {
         clearInterval(this.animationInterval);
         this.gameStatus(GameStatusEnum.SHIP_READY);
+        this.fuelInSpacePrice(Helper.randomMinMaxGenerator(50, 100));
         this.ship().setStartPos();
         this.redrawCanvas();
     }
 
     upgradeShip() {
         this.shipOnPlanetViews(ShipOnPlanetViews.UPGRADE_SHIP);
+    }
+
+    shieldUpgrade() {
+        let quantity = 100;
+        let unitPrice = this.currentPlanet().shieldUpgradePrice;
+        let fullPrice = quantity * unitPrice;
+        if (fullPrice > this.ship().money()) {
+            fullPrice = this.ship().money();
+            quantity = Math.floor(fullPrice / unitPrice);
+        }
+        this.ship().money(this.ship().money() - fullPrice);
+        this.ship().shieldSize(this.ship().shieldSize() + quantity);
+    }
+
+    shieldRepair() {
+        let quantity = 100;
+        let unitPrice = this.currentPlanet().shieldUnitPrice;
+        let fullPrice = quantity * unitPrice;
+        if (fullPrice > this.ship().money()) {
+            fullPrice = this.ship().money();
+            quantity = Math.floor(fullPrice / unitPrice);
+        }
+
+        if (this.ship().shield() + quantity > this.ship().shieldSize()) {
+            quantity = this.ship().shieldSize() - this.ship().shield();
+            fullPrice = quantity * unitPrice;
+        }
+
+        this.ship().money(this.ship().money() - fullPrice);
+        this.ship().shield(this.ship().shield() + quantity);
+    }
+
+    firePowerUpgrade() {
+        let quantity = 100;
+        let unitPrice = this.currentPlanet().firePowerUpgradePrice;
+        let fullPrice = quantity * unitPrice;
+        if (fullPrice > this.ship().money()) {
+            fullPrice = this.ship().money();
+            quantity = Math.floor(fullPrice / unitPrice);
+        }
+        this.ship().money(this.ship().money() - fullPrice);
+        this.ship().firePowerSize(this.ship().firePowerSize() + quantity);
+    }
+
+    firePowerRepair() {
+        let quantity = 100;
+        let unitPrice = this.currentPlanet().firePowerUnitPrice;
+        let fullPrice = quantity * unitPrice;
+        if (fullPrice > this.ship().money()) {
+            fullPrice = this.ship().money();
+            quantity = Math.floor(fullPrice / unitPrice);
+        }
+
+        if (this.ship().firePower() + quantity > this.ship().firePowerSize()) {
+            quantity = this.ship().firePowerSize() - this.ship().firePower();
+            fullPrice = quantity * unitPrice;
+        }
+
+        this.ship().money(this.ship().money() - fullPrice);
+        this.ship().firePower(this.ship().firePower() + quantity);
+    }
+
+    fuelUpgrade() {
+        let quantity = 100;
+        let unitPrice = this.currentPlanet().fuelUpgradePrice;
+        let fullPrice = quantity * unitPrice;
+        if (fullPrice > this.ship().money()) {
+            fullPrice = this.ship().money();
+            quantity = Math.floor(fullPrice / unitPrice);
+        }
+        this.ship().money(this.ship().money() - fullPrice);
+        this.ship().fuelTankSize(this.ship().fuelTankSize() + quantity);
+    }
+
+    fuelRepair() {
+        this.buyFuel(100, this.currentPlanet());
+    }
+
+    cargoUpgrade() {
+        let quantity = 100;
+        let unitPrice = this.currentPlanet().cargoUpgradeUnitPrice;
+        let fullPrice = quantity * unitPrice;
+        if (fullPrice > this.ship().money()) {
+            fullPrice = this.ship().money();
+            quantity = Math.floor(fullPrice / unitPrice);
+        }
+        this.ship().money(this.ship().money() - fullPrice);
+        this.ship().cargoBaySize(this.ship().cargoBaySize() + quantity);
     }
 
     getLoan() {
@@ -198,32 +311,21 @@ class SpaceTrader {
             this.ship().fuel(this.ship().fuelTankSize());
             return;
         }
-
-        let money = this.ship().money();
-        let fuelUnitPrice = spaceOrPlanet == "SPACE" ? this.fuelInSpacePrice : this.currentPlanet().fuelUnitPrice;
-        let fuelPrice =  quantity * fuelUnitPrice;
-        let fuelAfter = this.ship().fuel() + quantity;
-        let gorivoDone = false;
-        while (!gorivoDone) {
-            if (fuelPrice > money) {
-                let diffMoney = money - fuelPrice;
-                quantity = Math.floor(diffMoney/fuelUnitPrice);
-                fuelPrice = quantity * fuelUnitPrice;
-                fuelAfter = this.ship().fuel() + quantity;
-                continue;
-            }
-
-            if (fuelAfter > this.ship().fuelTankSize()) {
-                quantity = this.ship().fuelTankSize() - this.ship().fuel();
-                fuelPrice = quantity * fuelUnitPrice;
-                fuelAfter = this.ship().fuel() + quantity;
-                continue;
-            }
-
-            gorivoDone = true;
+        let unitPrice = spaceOrPlanet == "SPACE" ? this.fuelInSpacePrice() : this.currentPlanet().fuelUnitPrice;
+        let fullPrice = quantity * unitPrice;
+        if (fullPrice > this.ship().money()) {
+            fullPrice = this.ship().money();
+            quantity = Math.floor(fullPrice / unitPrice);
         }
+
+        if (this.ship().fuel() + quantity > this.ship().fuelTankSize()) {
+            quantity = this.ship().fuelTankSize() - this.ship().fuel();
+            fullPrice = quantity * unitPrice;
+        }
+
+        this.ship().money(this.ship().money() - fullPrice);
         this.ship().fuel(this.ship().fuel() + quantity);
-        this.ship().money(this.ship().money() - fuelPrice);
+
     }
 
     getFuelInSpace() {
@@ -232,6 +334,152 @@ class SpaceTrader {
 
     goToMarket() {
         this.shipOnPlanetViews(ShipOnPlanetViews.MARKET);
+    }
+
+    goToPiratesFight() {
+        clearInterval(this.animationInterval);
+        this.animationInterval = null;
+        this.pirates([]);
+        this.fightReward(0);
+        let ship = this.ship();
+        let piratesCount = Helper.randomMinMaxGenerator(1, 3);
+        let shieldMin = Math.floor(ship.shieldSize() / 3);
+        let shieldMax = Math.floor(ship.shieldSize() / 2);
+        let fireMin = Math.floor(ship.firePowerSize() / 3);
+        let fireMax = Math.floor(ship.firePowerSize() / 2);
+        for (let i = 0; i < piratesCount; i++) {
+            let pirateShield = Helper.randomMinMaxGenerator(shieldMin, shieldMax);
+            let pirateFirePower = Helper.randomMinMaxGenerator(fireMin, fireMax);
+            this.fightReward(this.fightReward() +pirateShield +  pirateFirePower);
+            let pirat = new PirateShip(pirateShield, pirateFirePower );
+            this.pirates.push(pirat);
+        }
+    
+        this.fightMessage("Napadnuti ste od gusara, imate nekoliko opcija...");
+        this.gameStatus(GameStatusEnum.SHIP_ATTACKED);
+        this.shipOnBattleViews(ShipOnBattleViews.DECISION);
+    }
+
+    handOverGargoToPirates() {
+        let ship = this.ship();
+        this.pirates([]);
+        this.fightMessage("Predali ste tovar gusarima, možete nastaviti putovanje");
+        this.emptyShipCargo();       
+        this.stopShip();
+    }
+
+    emptyShipCargo() {
+        let ship = this.ship();
+        ship.cargoPrice = 0;
+        ship.usedCargo(0);
+        for (let i = 0; i < ship.products.length; i++) {
+            let product = ship.products[i];
+            product.quantity(0);
+        }
+    }
+
+    fightWithPirates() {
+        let rounds = 50;
+        this.piratesFightRound(rounds);
+        this.piratesFightType("FIGHT");
+        this.fightMessage(`Morate izdržati ${rounds} rundi borbe. Ako štitovi ne izdrže, gusari će vam ukrasti tovar, a ako uništite gusare dobiti ćete nagradu!`);
+        this.prepareForFight();
+        this.shipOnBattleViews(ShipOnBattleViews.FIGHT);
+    }
+
+    escapeFromPirates() {
+        
+        let rounds = Helper.randomMinMaxGenerator(1, 5);
+        this.piratesFightRound(rounds);
+        this.piratesFightType("ESCAPE");
+        this.fightMessage(`Morate izdržati ${rounds} rundi pucanja gusarskih brodova na vas. Ako štitovi ne izdrže, gusari će vam ukrasti tovar!`);
+        this.prepareForFight();
+        this.shipOnBattleViews(ShipOnBattleViews.FIGHT);
+    }
+
+    prepareForFight() {
+        let round = this.piratesFightRound();
+        if (round == 0) {
+            this.pirates([]);
+            this.stopShip();
+            return;
+        }
+
+        let pirates = this.pirates();
+        pirates.forEach(pirateShip => {
+            let rnd = Helper.randomMinMaxGenerator(0, Math.floor(pirateShip.firePower()/3));
+            pirateShip.shot(rnd);
+        });
+        if (this.piratesFightType() == "FIGHT") {
+            let min = Math.floor(Math.max(this.ship().firePower()/5, Math.max(this.ship().firePower()/4)));
+            let max = Math.floor(Math.max(this.ship().firePower()/3, this.ship().firePower()/2));
+            let rnd = Helper.randomMinMaxGenerator(min, max);
+            this.ship().shot(rnd);
+        } else {
+            this.ship().shot(0);
+        }   
+    }
+
+    fight() {
+        let pirates = this.pirates();
+        let ship = this.ship();
+        if (this.piratesFightType() == "FIGHT") {
+            let shipShot = ship.shot();
+            let outPirates = [];
+            pirates.forEach(pirateShip => {
+                pirateShip.shield(pirateShip.shield() - shipShot);
+                if (pirateShip.shield() <= 0) {
+                    outPirates.push(pirateShip);
+                }
+            });
+            ship.firePower(ship.firePower() - shipShot);
+
+            for (let i = 0; i < outPirates.length; i++) {
+                let pirateShip = outPirates[i];
+                this.pirates.remove(pirateShip);
+            }
+
+            if (this.pirates().length == 0) {
+                this.fightMessage(`Uništili ste sve gusare. Nagrađeni ste sa ${this.fightReward()} kredita!`);
+                ship.money(ship.money() + this.fightReward());
+                this.piratesFightRound(0);
+                this.prepareForFight();
+                return;
+            }
+        }
+
+        pirates = this.pirates();
+        let piratesFirePower = 0;
+        pirates.forEach(pirateShip => {
+            let shipShield = this.ship().shield();
+            let shipShieldAfterShot = shipShield - pirateShip.shot();
+            pirateShip.firePower(pirateShip.firePower() - pirateShip.shot());
+            piratesFirePower += pirateShip.firePower();
+            if (shipShieldAfterShot <= 0) {
+                ship.shield(0);
+            } else {
+                ship.shield(shipShieldAfterShot);
+            }
+        });
+
+        if (ship.shield() <= 0) {
+            this.fightMessage("Gusari su vam oduzeli sav tovar. Možete nastaviti put.");
+            this.emptyShipCargo();
+            this.piratesFightRound(0);
+            this.prepareForFight();
+            return;
+        }
+
+        if (piratesFirePower == 0) {
+            this.fightMessage("Gusari su ostali bez municije i povukli su se. Možete nastaviti put.");
+            this.piratesFightRound(0);
+            this.prepareForFight();
+            return;
+        }
+
+        this.piratesFightRound(this.piratesFightRound() - 1);
+        this.prepareForFight();
+
     }
 
     getSelectedPlanetMarketInfo() {
@@ -261,6 +509,7 @@ class SpaceTrader {
 
         findShipProduct.quantity(findShipProduct.quantity() + quantity);
         this.ship().usedCargo(this.ship().usedCargo() + quantity);
+        this.calculateCargoPrice();
 
     }
     sellProduct(product) {
@@ -276,7 +525,30 @@ class SpaceTrader {
         this.ship().money(this.ship().money() + price);
         product.quantity(product.quantity() - quantity);
         this.ship().usedCargo(this.ship().usedCargo() - quantity);
+        this.calculateCargoPrice();
+    }
 
+    calculateCargoPrice() {
+        let ship = this.ship();
+        let shipProducts = ship.products;
+        let currentPlanet = this.currentPlanet();
+        let currPlProdusts = currentPlanet.products;
+        let sum = 0; 
+        let sumCargoQuantity = 0;
+        for (let i = 0; i < shipProducts.length; i++) {
+            let shipItem = shipProducts[i];
+            if (shipItem.quantity() > 0) {
+                sumCargoQuantity += shipItem.quantity()
+                let findOnPlanet = currPlProdusts.find((itemProduct) => {
+                    if (shipItem.name == itemProduct.name) return true;
+                });
+                if (findOnPlanet) {
+                    sum += shipItem.quantity() * findOnPlanet.price();
+                }
+            }
+        }
+        this.ship().usedCargo(sumCargoQuantity);
+        this.ship().cargoPrice = sum;
     }
 
     drawPlanets(canvas, ctx) {
@@ -291,6 +563,15 @@ class SpaceTrader {
         for (let i = 0; i < this.planets.length; i++) {
             let itemPlanet = this.planets[i];
             itemPlanet.draw(ctx);
+        }
+    }
+
+    recalculatePlanetPrices() {
+        let self = this;
+        for (let i = 0; i < this.planets.length; i++) {
+            let itemPlanet = this.planets[i];
+            if (self.currentPlanet() && (self.currentPlanet().planetName == itemPlanet.planetName)) continue;
+            itemPlanet.calculatePrices();
         }
     }
 
@@ -328,9 +609,19 @@ class SpaceTrader {
 
         canvas.addEventListener('mousemove', (event) => {
             if (event) {
-                if (self.canvasEvents) return;
-                if (self.gameStatus() == GameStatusEnum.SHIP_MOVE) return;
-                if (self.redraw) return;
+                if (self.canvasEvents) {
+                    event.currentTarget.style.cursor = "";
+                    event.currentTarget.style.cursor = "not-allowed";
+                    return;
+                }
+                if (self.gameStatus() == GameStatusEnum.SHIP_MOVE) {
+                    event.currentTarget.style.cursor = "not-allowed";
+                    return;
+                }
+                if (self.redraw) {
+                    event.currentTarget.style.cursor = "not-allowed";
+                    return;
+                }
                 self.canvasEvents = true;
                 
                 if (!self.canvasRect)  {
@@ -435,7 +726,14 @@ class Planet {
         this.isSelected = false;
         this.distanceFromShip = 0;
         this.fuelUnitPrice = 1;
+        this.fuelUpgradePrice = 1;
+        this.shieldUnitPrice = 1;
+        this.shieldUpgradePrice = 1;
+        this.cargoUpgradeUnitPrice = 1;
+        this.firePowerUnitPrice = 1;
+        this.firePowerUpgradePrice = 1;
         this.products = [];
+
         switch (planetType) {
             case PlanetTypeEnum.ADVANCED:
                 this.stopColor = "gray"
@@ -497,59 +795,67 @@ class Planet {
     }
 
     calculatePrices() {
-        this.fuelUnitPrice = Helper.randomMinMaxGenerator(1, 4);
+        this.fuelUnitPrice = Helper.randomMinMaxGenerator(4, 12);
+        this.fuelUpgradePrice = Helper.randomMinMaxGenerator(75, 100);
+        this.shieldUnitPrice = Helper.randomMinMaxGenerator(7, 15);
+        this.shieldUpgradePrice = Helper.randomMinMaxGenerator(75, 100);
+        this.firePowerUnitPrice = Helper.randomMinMaxGenerator(7, 15);
+        this.firePowerUpgradePrice = Helper.randomMinMaxGenerator(75, 100);
+        this.cargoUpgradeUnitPrice = Helper.randomMinMaxGenerator(75, 100);
         let wares = null;
+        this.products = [];
         switch (this.planetType) {
             case PlanetTypeEnum.ADVANCED:
-                wares = new Wares("Polj. pr.", Helper.randomMinMaxGenerator(1, 7), 0);
+                wares = new Wares("Polj. pr.", Helper.randomMinMaxGenerator(3, 7), 0);
                 this.products.push(wares);
-                wares = new Wares("Ind. pr.", Helper.randomMinMaxGenerator(1, 7), 0);
+                wares = new Wares("Ind. pr.", Helper.randomMinMaxGenerator(3, 7), 0);
                 this.products.push(wares);
-                wares = new Wares("IT teh.", Helper.randomMinMaxGenerator(1, 9), 0);
+                wares = new Wares("IT teh.", Helper.randomMinMaxGenerator(3, 9), 0);
                 this.products.push(wares);
-                wares = new Wares("Nap. teh.", Helper.randomMinMaxGenerator(1, 3), 0);
+                wares = new Wares("Nap. teh.", Helper.randomMinMaxGenerator(2, 4), 0);
                 this.products.push(wares);
                 break;
             case PlanetTypeEnum.AGRICULTURAL:
-                wares = new Wares("Polj. pr.", Helper.randomMinMaxGenerator(1,3), 0);
+                wares = new Wares("Polj. pr.", Helper.randomMinMaxGenerator(1, 3), 0);
                 this.products.push(wares);
-                wares = new Wares("Ind. pr.", Helper.randomMinMaxGenerator(1, 7), 0);
+                wares = new Wares("Ind. pr.", Helper.randomMinMaxGenerator(3, 7), 0);
                 this.products.push(wares);
-                wares = new Wares("IT teh.", Helper.randomMinMaxGenerator(1,9), 0);
+                wares = new Wares("IT teh.", Helper.randomMinMaxGenerator(6, 9), 0);
                 this.products.push(wares);
-                wares = new Wares("Nap. teh.", Helper.randomMinMaxGenerator(1,12), 0);
+                wares = new Wares("Nap. teh.", Helper.randomMinMaxGenerator(7, 12), 0);
                 this.products.push(wares);
 
                 break;
             case PlanetTypeEnum.INDUSTRIAL:
-                wares = new Wares("Polj. pr.", Helper.randomMinMaxGenerator(1, 7), 0);
+                wares = new Wares("Polj. pr.", Helper.randomMinMaxGenerator(3, 7), 0);
                 this.products.push(wares);
-                wares = new Wares("Ind. pr.", Helper.randomMinMaxGenerator(1, 3), 0);
+                wares = new Wares("Ind. pr.", Helper.randomMinMaxGenerator(2, 5), 0);
                 this.products.push(wares);
-                wares = new Wares("IT teh.", Helper.randomMinMaxGenerator(1, 9), 0);
+                wares = new Wares("IT teh.", Helper.randomMinMaxGenerator(4, 9), 0);
                 this.products.push(wares);
-                wares = new Wares("Nap. teh.", Helper.randomMinMaxGenerator(1, 12), 0);
+                wares = new Wares("Nap. teh.", Helper.randomMinMaxGenerator(6, 12), 0);
                 this.products.push(wares);
                 break;
             case PlanetTypeEnum.INFORMATION:
-                wares = new Wares("Polj. pr.", Helper.randomMinMaxGenerator(1, 7), 0);
+                wares = new Wares("Polj. pr.", Helper.randomMinMaxGenerator(3, 7), 0);
                 this.products.push(wares);
-                wares = new Wares("Ind. pr.", Helper.randomMinMaxGenerator(1, 7), 0);
+                wares = new Wares("Ind. pr.", Helper.randomMinMaxGenerator(3, 7), 0);
                 this.products.push(wares);
-                wares = new Wares("IT teh.", Helper.randomMinMaxGenerator(1, 3), 0);
+                wares = new Wares("IT teh.", Helper.randomMinMaxGenerator(1, 4), 0);
                 this.products.push(wares);
-                wares = new Wares("Nap. teh.", Helper.randomMinMaxGenerator(1, 12), 0);
+                wares = new Wares("Nap. teh.", Helper.randomMinMaxGenerator(5, 12), 0);
                 this.products.push(wares);
                 break;
             default:
-                wares = new Wares("Polj. pr.", Helper.randomMinMaxGenerator(1,3), 0);
+                wares = new Wares("Polj. pr.", Helper.randomMinMaxGenerator(1, 3), 0);
                 this.products.push(wares);
-                wares = new Wares("Ind. pr.", Helper.randomMinMaxGenerator(1, 7), 0);
+                wares = new Wares("Ind. pr.", Helper.randomMinMaxGenerator(3, 7), 0);
                 this.products.push(wares);
-                wares = new Wares("IT teh.", Helper.randomMinMaxGenerator(1,9), 0);
+                wares = new Wares("IT teh.", Helper.randomMinMaxGenerator(6, 9), 0);
                 this.products.push(wares);
-                wares = new Wares("Nap. teh.", Helper.randomMinMaxGenerator(1,12), 0);
+                wares = new Wares("Nap. teh.", Helper.randomMinMaxGenerator(7, 12), 0);
                 this.products.push(wares);
+
                 break;
         }
     }
@@ -567,6 +873,8 @@ class Ship {
         this.cargoBaySize = ko.observable(1000);
         this.shieldSize = ko.observable(1000);
         this.shield = ko.observable(1000);
+        this.firePower = ko.observable(1000);
+        this.firePowerSize = ko.observable(1000);
         this.money = ko.observable(10000);
         this.products = [
             new Wares("Polj. pr.", 0, 0),
@@ -577,6 +885,9 @@ class Ship {
         let self = this;
         this.usedCargo = ko.observable(0);
         this.setStartPos();
+        this.cargoPrice = 0;
+        this.shot = ko.observable(0);
+        this.attacked = false;
     }
 
     dispose() {
@@ -635,18 +946,22 @@ class Ship {
             matchY = true;
         }
 
+        //-------------- ARRIVAL PROBE ----------------------
         if (matchX  && matchY) {
             clearInterval(parent.animationInterval);
             parent.animationInterval = null;
             parent.currentPlanet(parent.selectedPlanet());
             parent.gameStatus(GameStatusEnum.SHIP_ONPLANET);
-            parent.goToMarket();
+            parent.recalculatePlanetPrices();
             this.angle = 90; //Ship position up;
             this.distanceToPlanet(0);
             this.setStartPos();
+            parent.goToMarket();
+            
             return;
         }
-        /*
+ 
+        /* Line math
             y = mx + b 
                 - m: slope  => m = (y2 - y1) / (x2 - x1)
                 - b: intercept
@@ -695,6 +1010,13 @@ class Ship {
             this.fuel(0);
             parent.stopShip();
         }
+
+        if (this.attacked) {
+            if (this.distanceToPlanet() > 20 && this.distanceToPlanet() < 150) {
+                parent.goToPiratesFight();
+                return;
+            }
+        }
     }
 }
 
@@ -703,6 +1025,14 @@ class Wares {
         this.name = name;
         this.price = ko.observable(price);
         this.quantity = ko.observable(quantity)
+    }
+}
+
+class PirateShip {
+    constructor(firePower, shild) {
+        this.firePower = ko.observable(firePower);
+        this.shield = ko.observable(shild);
+        this.shot = ko.observable(0);
     }
 }
 
@@ -747,8 +1077,10 @@ const ShipOnPlanetViews = {
 
 }
 
-
-
+const ShipOnBattleViews = {
+    DECISION: "DECISION",
+    FIGHT: "FIGHT"
+}
 
 const PlanetNames = [
     "Chisehines",
@@ -812,5 +1144,7 @@ const PlanetNames = [
     "Trapus M1",
     "Phuna BS5F"
 ];
+
+const delay = ms => new Promise(res => setTimeout(res, ms));
 
 export { SpaceTrader as GameModule };
