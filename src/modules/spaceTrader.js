@@ -36,6 +36,13 @@ class SpaceTrader {
         this.fightMessage = ko.observable("");
         this.fightReward = ko.observable(0);
         this.attackFrequency = 10;
+        this.loans = [
+            new Loan(10000, 5, 100),
+            new Loan(20000, 7, 200),
+            new Loan(50000, 10, 300),
+            new Loan(100000, 10, 500)
+        ];
+        this.uputeVisible = ko.observable(false);
     }
 
     static getObject() {
@@ -67,9 +74,7 @@ class SpaceTrader {
                 let selectedPlanet = self.selectedPlanet();
                 let selectedPlanetHtml = `<span style='color: ${selectedPlanet.stopColor};'>${selectedPlanet.planetName}</span>`;
 
-                if (shipOnPlanetViews == ShipOnPlanetViews.FUEL) {
-                    return `${currentPlanetHtml} : Stanica goriva`;
-                } else if (shipOnPlanetViews == ShipOnPlanetViews.LOAN) {
+                if (shipOnPlanetViews == ShipOnPlanetViews.LOAN) {
                     return `${currentPlanetHtml} : Ured banke, zajmovi`;
                 } else if (shipOnPlanetViews == ShipOnPlanetViews.MARKET) {
                     return `${currentPlanetHtml} : Tržnica`;
@@ -78,7 +83,7 @@ class SpaceTrader {
                 } else if (shipOnPlanetViews == ShipOnPlanetViews.POLICE) {
                     return `${currentPlanetHtml} : Policijaska stanica`;
                 } else if (shipOnPlanetViews == ShipOnPlanetViews.UPGRADE_SHIP) {
-                    return `${currentPlanetHtml} : Dokovi. Nadogradnja i popravak broda.`;
+                    return `${currentPlanetHtml} : Dokovi. Nadogradnja, popravak i dopuna goriva.`;
                 }
             } else if (gameStatus == GameStatusEnum.SHIP_BUY_FUEL) {
                 return "Kupnja goriva u svemiru..."
@@ -124,9 +129,10 @@ class SpaceTrader {
         this.canvasMouseX = 0;
         this.canvasMouseY = 0;
         this.canvasRect = null;
-        this.selectedPlanet(null);
-        this.planets = [];
         this.gameStatus(GameStatusEnum.GAME_PREPARE);
+        this.selectedPlanet(null);
+        this.currentPlanet(null);
+        this.planets = [];
         this.ship(null);
         this.redraw = false;
     }
@@ -217,6 +223,13 @@ class SpaceTrader {
             fullPrice = this.ship().money();
             quantity = Math.floor(fullPrice / unitPrice);
         }
+
+        let total = this.ship().shieldSize() + quantity;
+        if (total > this.ship().maxShieldSize()) {
+            quantity = this.ship().maxShieldSize() - this.ship().shieldSize();
+            fullPrice = quantity * unitPrice;
+        }
+
         this.ship().money(this.ship().money() - fullPrice);
         this.ship().shieldSize(this.ship().shieldSize() + quantity);
     }
@@ -247,6 +260,13 @@ class SpaceTrader {
             fullPrice = this.ship().money();
             quantity = Math.floor(fullPrice / unitPrice);
         }
+
+        let total = this.ship().firePowerSize() + quantity;
+        if (total > this.ship().maxFirePowerSize()) {
+            quantity = this.ship().maxFirePowerSize() - this.ship().firePowerSize();
+            fullPrice = quantity * unitPrice;
+        }
+
         this.ship().money(this.ship().money() - fullPrice);
         this.ship().firePowerSize(this.ship().firePowerSize() + quantity);
     }
@@ -277,6 +297,13 @@ class SpaceTrader {
             fullPrice = this.ship().money();
             quantity = Math.floor(fullPrice / unitPrice);
         }
+
+        let total = this.ship().fuelTankSize() + quantity;
+        if (total > this.ship().maxFuelTankSize()) {
+            quantity = this.ship().maxFuelTankSize() - this.ship().fuelTankSize();
+            fullPrice = quantity * unitPrice;
+        }
+
         this.ship().money(this.ship().money() - fullPrice);
         this.ship().fuelTankSize(this.ship().fuelTankSize() + quantity);
     }
@@ -289,10 +316,19 @@ class SpaceTrader {
         let quantity = 100;
         let unitPrice = this.currentPlanet().cargoUpgradeUnitPrice;
         let fullPrice = quantity * unitPrice;
+
         if (fullPrice > this.ship().money()) {
             fullPrice = this.ship().money();
             quantity = Math.floor(fullPrice / unitPrice);
         }
+
+        let total = this.ship().cargoBaySize() + quantity;
+        if (total > this.ship().maxCargoBaySize()) {
+            quantity = this.ship().maxCargoBaySize() - this.ship().cargoBaySize();
+            fullPrice = quantity * unitPrice;
+        }
+
+
         this.ship().money(this.ship().money() - fullPrice);
         this.ship().cargoBaySize(this.ship().cargoBaySize() + quantity);
     }
@@ -301,8 +337,19 @@ class SpaceTrader {
         this.shipOnPlanetViews(ShipOnPlanetViews.LOAN);
     }
 
-    getFuelOnPlanet() {
-        this.shipOnPlanetViews(ShipOnPlanetViews.FUEL);
+    takeLoan(koji) {
+        let loan = koji;
+        let noviLoan = new Loan(koji.glavnica, koji.kamatnaStopa, koji.brojDanaVracanja);
+        this.ship().loans.push(noviLoan);
+        this.ship().money(this.ship().money() + noviLoan.glavnica );
+    }
+
+    loanPayFull(koji) {
+        let loan = koji;
+        if (this.ship().money() > koji.ostatakIznosa) {
+            this.ship().money(this.ship().money() - koji.ostatakIznosa);
+            this.ship().loans.remove(koji);
+        }
     }
 
     buyFuel(quantity, spaceOrPlanet) {
@@ -671,10 +718,10 @@ class SpaceTrader {
                         let old = self.selectedPlanet()
                         if (old) {
                             old.isSelected = false;
-                            old.distanceFromShip = 0;
+                            old.distanceFromShip(0);
                         }
                         planet.isSelected = true;
-                        planet.distanceFromShip = self.getDistance(self.ship().shipX, self.ship().shipY, planet.x, planet.y);
+                        planet.distanceFromShip(self.getDistance(self.ship().shipX, self.ship().shipY, planet.x, planet.y));
                         selectedPlanet = planet;
                         break;
                     } 
@@ -688,6 +735,10 @@ class SpaceTrader {
         });
     }
 
+    toggleUputeVisible() {
+        this.uputeVisible(!this.uputeVisible());
+    }
+
     newGame() {
         this.reset();
         let canvas = document.getElementById("canvas");
@@ -695,11 +746,22 @@ class SpaceTrader {
 
         let ship = new Ship(20, 20, 0, this.spaceShipImage);
         this.ship(ship);
-
+        this.gameStatus(GameStatusEnum.SHIP_READY);   
+        this.gameTime(0);
+        this.shipOnPlanetViews(ShipOnPlanetViews.MARKET);
+        this.shipOnBattleViews(ShipOnBattleViews.DECISION);
+        this.fuelInSpacePrice(50);
+        this.sellBuyQuantity("1000");
+        this.pirates([]);
+        this.piratesFightRound(0);
+        this.piratesFightType("FIGHT");
+        this.fightMessage("");
+        this.fightReward(0);
+        this.attackFrequency = 10;
         this.redrawCanvas();
-        this.gameStatus(GameStatusEnum.SHIP_READY);
         let msg = new AppMessage("SpaceTrader", `Nova igra staratana`, null);
         this.pubSub.publish("GameMessage", msg);
+
     }
     saveGame() {
 
@@ -724,7 +786,7 @@ class Planet {
         this.radius = this.outerRadius;
         this.planetName = planetName;
         this.isSelected = false;
-        this.distanceFromShip = 0;
+        this.distanceFromShip = ko.observable(0);
         this.fuelUnitPrice = 1;
         this.fuelUpgradePrice = 1;
         this.shieldUnitPrice = 1;
@@ -869,12 +931,16 @@ class Ship {
         this.shipImage = shipImage;
         this.distanceToPlanet = ko.observable(0);
         this.fuelTankSize = ko.observable(1000)
+        this.maxFuelTankSize = ko.observable(2000);
         this.fuel = ko.observable(1000);
         this.cargoBaySize = ko.observable(1000);
+        this.maxCargoBaySize = ko.observable(5000);
         this.shieldSize = ko.observable(1000);
+        this.maxShieldSize = ko.observable(2000);
         this.shield = ko.observable(1000);
         this.firePower = ko.observable(1000);
         this.firePowerSize = ko.observable(1000);
+        this.maxFirePowerSize = ko.observable(2000);
         this.money = ko.observable(10000);
         this.products = [
             new Wares("Polj. pr.", 0, 0),
@@ -888,6 +954,21 @@ class Ship {
         this.cargoPrice = 0;
         this.shot = ko.observable(0);
         this.attacked = false;
+        this.loans = ko.observableArray([]);
+        this.shipLevel = ko.observable(1);
+        this.upgradeShipCost = ko.observable(100000);
+    }
+
+    upgradeShip() {
+        if (this.money() >= this.upgradeShipCost()) {
+            this.shipLevel(this.shipLevel() + 1);
+            this.money(this.money() - this.upgradeShipCost());
+            this.maxFuelTankSize(this.maxFuelTankSize() * 2);
+            this.maxCargoBaySize(this.maxCargoBaySize() * 2);
+            this.maxShieldSize(this.maxShieldSize() * 2);
+            this.maxFirePowerSize(this.maxFirePowerSize() * 2);
+            this.upgradeShipCost(this.upgradeShipCost() * 2);
+        }  
     }
 
     dispose() {
@@ -929,6 +1010,7 @@ class Ship {
 
     moveToPlanet(selectedPlanet, parent, speed = 1) {
         parent.gameTime(parent.gameTime() + 1);
+        this.resolveLoan()
         let planetX = selectedPlanet.x;
         let planetY = selectedPlanet.y;
         let shipX = this.shipX || 0;
@@ -951,6 +1033,7 @@ class Ship {
             clearInterval(parent.animationInterval);
             parent.animationInterval = null;
             parent.currentPlanet(parent.selectedPlanet());
+            parent.currentPlanet().distanceFromShip(0);
             parent.gameStatus(GameStatusEnum.SHIP_ONPLANET);
             parent.recalculatePlanetPrices();
             this.angle = 90; //Ship position up;
@@ -1018,6 +1101,33 @@ class Ship {
             }
         }
     }
+
+    resolveLoan() {
+        let loansDone = [];
+        this.loans().forEach(element => {
+            let forReturn = element.iznosVracanjaPoDanu;
+            if (element.ostatakIznosa > forReturn) {
+                element.ostatakIznosa -= forReturn;
+            } else {
+                forReturn = element.glavnicaKamata - element.ostatakIznosa;
+                element.ostatakIznosa -= forReturn;
+            }
+            
+            this.money(this.money() - forReturn);
+            
+            if (element.ostatakIznosa <= 0) {
+                loansDone.push(element);
+            }
+
+        });
+
+        loansDone.forEach(element => {
+            let msg = new AppMessage("SpaceTrader", `Zajam ${element.glavnica} isplaćen u cijelosti!`, null);
+            this.loans.remove(element);
+            
+            this.pubSub.publish("GameMessage", msg);
+        });
+    }
 }
 
 class Wares {
@@ -1033,6 +1143,39 @@ class PirateShip {
         this.firePower = ko.observable(firePower);
         this.shield = ko.observable(shild);
         this.shot = ko.observable(0);
+    }
+}
+
+class Loan {
+    constructor(glavnica, kamatnaStopa, brojDanaVracanja) {
+        this.glavnica = glavnica;
+        this.kamatnaStopa = kamatnaStopa;
+        this.brojDanaVracanja = brojDanaVracanja;
+        this.kamata = 0;
+        this.glavnicaKamata = 0;
+        this.iznosVracanjaPoDanu = 0;
+        this.ostatakIznosa = 0;
+        this.calculateRates();
+    }
+
+    calculateRates() {
+        this.kamata = Math.floor(this.glavnica * (this.kamatnaStopa / 100));
+        this.glavnicaKamata = this.glavnica + this.kamata;
+        this.ostatakIznosa = this.glavnicaKamata;
+        this.iznosVracanjaPoDanu = Math.floor(this.glavnicaKamata / this.brojDanaVracanja);
+    }
+
+    repayment() {
+
+    }
+    
+}
+
+class LoanItem {
+    constructor(dan, iznos) {
+        this.dan = dan;
+        this.iznos = iznos;
+        this.placeno = false;
     }
 }
 
@@ -1073,8 +1216,6 @@ const ShipOnPlanetViews = {
     UPGRADE_SHIP: "UPGRADE_SHIP",
     LOAN: "LOAN",
     POLICE: "POLICE",
-    FUEL: "FUEL",
-
 }
 
 const ShipOnBattleViews = {

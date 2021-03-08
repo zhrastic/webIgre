@@ -418,6 +418,12 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="row" style="border-top: 1px solid white; margin-top: 10px; padding-top: 5px;" >
+                                    <div class="col-12">
+                                        Na dokovima možete popravljati svoj brod, nadograđivati ga i kupovati gorivo.<br/>
+                                        Jedinične cijene su prikazane kao nadogradnja / popravak ili nadopuna...
+                                    </div>
+                                </div>
                                 <div class="row" style="margin-top: 10px; margin-bottom: 10px; padding: 5px 5px; border-top: 1px solid white; border-bottom: 1px solid white">
                                     <div class="col-12">
                                         <table class="table table-striped table-dark">
@@ -440,9 +446,11 @@
                                                         <span data-bind="text: currentPlanet().shieldUnitPrice"></span>
                                                     </td>
                                                     <td>
+                                                        <!--ko if: ship().maxCargoBaySize() > ship().cargoBaySize()-->
                                                         <button class="btn btn-outline-light btn-xs" data-bind="click: shieldUpgrade">
                                                             <i class="fas fa-angle-up"></i>100
                                                         </button>
+                                                        <!--/ko-->
                                                     </td>
                                                     <td>
                                                         <button class="btn btn-outline-light btn-xs" data-bind="click: shieldRepair">
@@ -462,9 +470,11 @@
                                                         <span data-bind="text: currentPlanet().firePowerUnitPrice"></span>
                                                     </td>
                                                     <td>
+                                                        <!--ko if: ship().maxFirePowerSize() > ship().firePowerSize()-->
                                                         <button class="btn btn-outline-light btn-xs" data-bind="click: firePowerUpgrade">
                                                             <i class="fas fa-angle-up"></i>100
                                                         </button>
+                                                        <!--/ko-->
                                                     </td>
                                                     <td>
                                                         <button class="btn btn-outline-light btn-xs" data-bind="click: firePowerRepair">
@@ -484,9 +494,11 @@
                                                         <span data-bind="text: currentPlanet().fuelUnitPrice"></span>
                                                     </td>
                                                     <td>
+                                                        <!--ko if: ship().maxFuelTankSize() > ship().fuelTankSize()-->
                                                         <button class="btn btn-outline-light btn-xs" data-bind="click: fuelUpgrade">
                                                             <i class="fas fa-angle-up"></i>100
                                                         </button>
+                                                        <!--/ko-->
                                                     </td>
                                                     <td>
                                                         <button class="btn btn-outline-light btn-xs" data-bind="click: fuelRepair">
@@ -505,9 +517,11 @@
                                                         <span data-bind="text: currentPlanet().cargoUpgradeUnitPrice"></span>
                                                     </td>
                                                     <td>
+                                                        <!--ko if: ship().maxCargoBaySize() > ship().cargoBaySize()-->
                                                         <button class="btn btn-outline-light btn-xs" data-bind="click: cargoUpgrade">
                                                             <i class="fas fa-angle-up"></i>100
                                                         </button>
+                                                        <!--/ko-->
                                                     </td>
                                                     <td>
                                                         &nbsp;
@@ -523,66 +537,88 @@
                                 <!--/ko-->
 
                                 <!--ko if: shipOnPlanetViews() == "LOAN"-->
-                                <div class="row">
+                                <div class="row" style="border-bottom: 1px solid white; margin-bottom: 10px; padding-bottom: 5px;">
                                     <div class="col-6">
-                                        LOAN OFFICE
-                                    
+                                        Tovar: <span data-bind="text: ship().usedCargo()"></span> / <span data-bind="text: ship().cargoBaySize()"></span>
                                     </div>
                                     <div class="col-6">
-                                        Ship
+                                        <div class="float-right">
+                                            Novac: <span class="" data-bind="text: ship().money()"></span>
+                                        </div>
                                     </div>
                                 </div>
-                                <!--/ko-->
-
-                                <!--ko if: shipOnPlanetViews() == "FUEL"-->
-                                <div class="row">
-                                    <div class="col-12">
-                                        <div class="row">
-                                            <div class="col-12">
-                                                <h7>
-                                                    Cijena goriva je <span class="font-weight-bold" data-bind="text: currentPlanet().fuelUnitPrice"></span> po jedinici;
-                                                </h7>
-                                            </div>
-                                        </div>
-                                        <div class="row" style="margin-top:30px; margin-bottom: 30px;">
-                                            <div class="col-4">
-                                                <button class="btn btn-outline-light btn-xs" data-bind="click: function(data, event) { buyFuel(10, 'PLANET', data, event)}">
-                                                    <i class="fas fa-gas-pump"></i>
-                                                    <span>Fuel + 10</span>
-                                                </button>
-                                            </div>
-                                            <div class="col-4">
-                                                <button class="btn btn-outline-light btn-xs" data-bind="click: function(data, event) { buyFuel(100, 'PLANET', data, event)}">
-                                                    <i class="fas fa-gas-pump"></i>
-                                                    <span>Fuel + 100</span>
-                                                </button>
-                                            </div>
-                                            <div class="col-4">
-                                                <button class="btn btn-outline-light btn-xs" data-bind="click: function(data, event) { buyFuel(1000, 'PLANET', data, event)}">
-                                                    <i class="fas fa-gas-pump"></i>
-                                                    <span>Fuel + 1000</span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-12">
-                                                <span>
-                                                    Ne morate se bojati odabrati gumb sa više goriva nego što stane u vaš rezervoar - goriva možete kupiti maksimalno koliki je kapacitet rezervoara.
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-12">
-                                                <ul>
-                                                    <li>
-                                                        Trenutno imate goriva: <span data-bind="text: ship().fuel()"> </span>
-                                                    </li>
-                                                    <li>
-                                                        Kapacitet rezervoara: <span data-bind="text: ship().fuelTankSize()"> </span>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
+                                <div class="row" style="border-bottom: 1px solid white; margin-bottom: 10px; padding-bottom: 5px;">
+                                    <div class="col-6">
+                                        KAMATNI URED 
+                                        <table class="table table-striped table-dark">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col" style="text-align: right;">Glavnica</th>
+                                                    <th scope="col" style="text-align: right;">Kamata <br/>%</th>
+                                                    <th scope="col" style="text-align: right;">Broj<br/> rata</th>
+                                                    <th scope="col" style="text-align: right;">Iznos rate <br/> po danu</th>
+                                                    <th scope="col"><i class="fas fa-hand-holding-usd"></i></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody data-bind="foreach: loans">
+                                                <tr>
+                                                    <td style="text-align: right;">
+                                                        <span data-bind="text: glavnica"></span>
+                                                    </td>
+                                                    <td style="text-align: right;">
+                                                        <span data-bind="text: kamatnaStopa"></span> %
+                                                    </td>
+                                                    <td style="text-align: right;">
+                                                        <span data-bind="text: brojDanaVracanja"></span>
+                                                    </td>
+                                                    <td style="text-align: right;">
+                                                        <span data-bind="text: iznosVracanjaPoDanu"></span>
+                                                    </td>
+                                                    <td>
+                                                        <button class="btn btn-outline-light btn-xs" title="Uzmi zajam" data-bind="click: $parent.takeLoan.bind($parent, $data)"  >
+                                                            <i class="fas fa-hand-holding-usd"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="col-6">
+                                        BROD
+                                        <table class="table table-striped table-dark">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col" style="text-align: right;">Glavnica</th>
+                                                    <th scope="col" style="text-align: right;">Kamata <br/>$</th>
+                                                    <th scope="col" style="text-align: right;">Broj<br/> rata</th>
+                                                    <th scope="col" style="text-align: right;">Preostali iznos</th>
+                                                    <th scope="col"><i class="fas fa-hand-holding-usd"></i></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody data-bind="foreach: ship().loans">
+                                                <tr>
+                                                    <td style="text-align: right;">
+                                                        <span data-bind="text: glavnica"></span>
+                                                    </td>
+                                                    <td style="text-align: right;">
+                                                        <span data-bind="text: kamata"></span>
+                                                    </td>
+                                                    <td style="text-align: right;">
+                                                        <span data-bind="text: brojDanaVracanja"></span>
+                                                    </td>
+                                                    <td style="text-align: right;">
+                                                        <span data-bind="text: ostatakIznosa"></span>
+                                                    </td>
+                                                    <td>
+                                                        <!--ko if: $parent.ship().money() >= ostatakIznosa-->
+                                                        <button class="btn btn-outline-light btn-xs" title="Vrati odjedamputa preostali iznos" data-bind="click: $parent.loanPayFull.bind($parent, $data)"  >
+                                                            <i class="fas fa-exchange-alt"></i>
+                                                        </button>
+                                                        <!--/ko-->
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                                 <!--/ko-->
@@ -598,13 +634,37 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="row" style="border-bottom: 1px solid white; margin-bottom: 10px; padding-bottom: 5px;" >
+                                    <div class="col-11">
+                                        <!--ko if: uputeVisible()-->
+                                        Odaberite planet, njegova tržnica će se prikazati u lijevom stupcu. 
+                                        U srednjem stupcu se nalazi tovar vašeg broda, a u desnom stupcu se nalazi tržnica planete na kojoj se nalazi vaš brod.
+                                        Na taj način možete pratiti što možete kupiti na planetu kojem jeste, što imate na brodu, i za koliko možete kupljenu robu prodati na odabranom planetu. 
+                                        <!--/ko-->
+                                        <!--ko ifnot: uputeVisible()-->
+                                        UPUTE
+                                        <!--/ko-->
+                                    </div>
+                                    <div class="col-1">
+                                        <!--ko ifnot: uputeVisible()-->
+                                        <button class="btn btn-outline-light btn-xs" data-bind="click: toggleUputeVisible" >
+                                            <i class="fas fa-chevron-down"></i>
+                                        </button>
+                                        <!--/ko-->
+                                        <!--ko if: uputeVisible()-->
+                                        <button class="btn btn-outline-light btn-xs" data-bind="click: toggleUputeVisible" >
+                                            <i class="fas fa-chevron-up"></i>
+                                        </button>
+                                        <!--/ko-->
+                                    </div>
+                                </div>
                                 <div class="row">
                                     <div class="col-4">
                                         <div class="row">
                                             <div class="col-12"> 
                                                 <span class="font-weight-bold">PLANET </span>
                                                 <span class="font-weight-bold" data-bind="text: selectedPlanet().planetName, style: { color: selectedPlanet().stopColor}"></span>
-                                                <span class="float-right">[SEL]</span>
+                                                <span class="float-right">[DIST: <span data-bind="text: selectedPlanet().distanceFromShip"></span>]</span>
                                             </div>
                                         </div>
                                        
@@ -633,7 +693,6 @@
                                             <div class="col-12">
                                                 <span class="font-weight-bold">BROD:</span>
                                             </div>
-                                            
                                         </div>
                                         
                                         <table class="table table-striped table-dark">
@@ -697,19 +756,19 @@
                             <button class="btn btn-outline-light btn-xs" data-bind="click: moveShip, disable: gameStatus() == 'SHIP_MOVE'">
                                 <i class="fas fa-play"></i>
                                 <span data-bind="css:{'text-success': gameStatus() == 'SHIP_MOVE'}">
-                                    Move ship
+                                    Pokreni brod
                                 </span>
                             </button>
                             <button class="btn btn-outline-light btn-xs" data-bind="click: stopShip, disable: gameStatus() === 'SHIP_READY' || gameStatus() == 'SHIP_BUY_FUEL'">
                                 <i class="fas fa-stop"></i>
                                 <span data-bind="css:{'text-success': gameStatus() == 'SHIP_READY'}">
-                                    Stop ship
+                                    Zaustavi brod
                                 </span>
                             </button>
                             <button class="btn btn-outline-light btn-xs" data-bind="click: getFuelInSpace, disable: (gameStatus() == 'SHIP_MOVE' || gameStatus() == 'SHIP_BUY_FUEL')">
                                 <i class="fas fa-gas-pump"></i>
                                 <span data-bind="css:{'text-success': gameStatus() == 'SHIP_BUY_FUEL'}">
-                                    Buy fuel
+                                    Kupi gorivo
                                 </span>
                             </button>
                             <!--/ko-->
@@ -723,27 +782,23 @@
                         <div class="btn-group btn-group-xs" role="group">
                             <button class="btn btn-outline-light btn-xs" data-bind="click: goToMarket, disable: shipOnPlanetViews() == 'MARKET'">
                                 <i class="fas fa-store-alt"></i>
-                                <span data-bind="css:{'text-success': shipOnPlanetViews() == 'MARKET'}">Market</span>
+                                <span data-bind="css:{'text-success': shipOnPlanetViews() == 'MARKET'}">Tržnica</span>
                             </button>
                             <button class="btn btn-outline-light btn-xs" data-bind="click: moveShip, disable: currentPlanet().planetName == selectedPlanet().planetName">
                                 <i class="fas fa-play"></i>
-                                <span>Move ship</span>
+                                <span>Pokreni brod</span>
                             </button>
                             <button class="btn btn-outline-light btn-xs" data-bind="click: upgradeShip, disable: shipOnPlanetViews() == 'UPGRADE_SHIP'">
                                 <i class="fas fa-cogs"></i>
-                                <span data-bind="css:{'text-success': shipOnPlanetViews() == 'UPGRADE_SHIP'}">Upgrade ship</span>
+                                <span data-bind="css:{'text-success': shipOnPlanetViews() == 'UPGRADE_SHIP'}">Dokovi</span>
                             </button>
                             <button class="btn btn-outline-light btn-xs" data-bind="click: getLoan, disable: shipOnPlanetViews() == 'LOAN'">
                                 <i class="far fa-money-bill-alt"></i>
-                                <span data-bind="css:{'text-success': shipOnPlanetViews() == 'LOAN'}">Loan</span>
-                            </button>
-                            <button class="btn btn-outline-light btn-xs" data-bind="click: getFuelOnPlanet, disable: shipOnPlanetViews() == 'FUEL'">
-                                <i class="fas fa-gas-pump"></i>
-                                <span data-bind="css:{'text-success': shipOnPlanetViews() == 'FUEL'}">Buy fuel</span>
+                                <span data-bind="css:{'text-success': shipOnPlanetViews() == 'LOAN'}">Zajam</span>
                             </button>
                             <button class="btn btn-outline-light btn-xs" data-bind="click: getSelectedPlanetMarketInfo">
                                 <i class="fas fa-search-dollar"></i>
-                                <span data-bind="css:{'text-success': shipOnPlanetViews() == 'MARKET_INFO'}">Market info</span>
+                                <span data-bind="css:{'text-success': shipOnPlanetViews() == 'MARKET_INFO'}">Tržnice drugih planeta - info</span>
                             </button>
                         </div>
                         <!--/ko-->
@@ -775,7 +830,6 @@
                         </button>
                         <!--/ko-->
                     </div>
-
                 </div>
             </div>
         </div>
