@@ -87,7 +87,7 @@ class App {
             { name: "Home", link: "", module: "", description: "Home", image: "" },
             { name: "Trader", link: `src/templates/trader.html?v=${version}`, module: `./trader.js?v=${version}`, description: "Spasi selo trgujući", image: "img/Trader.png"},
             { name: "Svemirski trgovac", link: `src/templates/spaceTrader.html?v=${version}`, module: `./spaceTrader.js?v=${version}`, description: "Trgujte putujući od planete do planete", image:"img/SpaceTrader.png" },
-            { name: "Jura", link: `src/templates/jura.html?v=${version}`, module: `./jura.js?v=${version}`, description: "Još ništa...", image:""  },
+            { name: "2048", link: `src/templates/2048.html?v=${version}`, module: `./2048.js?v=${version}`, description: "2048 gamegi", image:""  },
             { name: "Štef", link: `src/templates/stef.html?v=${version}`, module: `./stef.js?v=${version}`, description: "Još ništa..." , image:"" },
         ]
         
