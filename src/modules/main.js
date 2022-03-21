@@ -22,6 +22,7 @@ class App {
                     let module = null;
                     import(nesto.module).then((module) => {
                         module = new module.GameModule();
+                        self.currentModule = module;
                         let activator = module.activate(self.pubSub);
                         //If activator is Promise, let it finish....
                         if (activator && activator.then && typeof activator.then === "function") {
@@ -48,6 +49,8 @@ class App {
                     
                     if (retComponent) {
                         let module = retComponent.createViewModel();
+
+                        self.currentModule = module;
                         //Call activate() method again. 
                         let activator = module.activate(self.pubSub);
                         if (activator && activator.then && typeof activator.then === "function") {
@@ -59,6 +62,7 @@ class App {
                             self.componentName(nesto.name);
                             self.loading(false);
                         }
+
                     } else {
                         self.componentName(nesto.name);
                         self.loading(false);
@@ -88,7 +92,7 @@ class App {
             { name: "Trader", link: `src/templates/trader.html?v=${version}`, module: `./trader.js?v=${version}`, description: "Spasi selo trgujući", image: "img/Trader.png"},
             { name: "Svemirski trgovac", link: `src/templates/spaceTrader.html?v=${version}`, module: `./spaceTrader.js?v=${version}`, description: "Trgujte putujući od planete do planete", image:"img/SpaceTrader.png" },
             { name: "2048", link: `src/templates/2048.html?v=${version}`, module: `./2048.js?v=${version}`, description: "2048 game", image:"img/2048_logo.png"  },
-            { name: "Štef", link: `src/templates/stef.html?v=${version}`, module: `./stef.js?v=${version}`, description: "Još ništa..." , image:"" },
+            { name: "Bricks", link: `src/templates/bricks.html?v=${version}`, module: `./bricks.js?v=${version}`, description: "Rušenje zida..." , image:"img/Bricks.png" },
         ]
         
     }  

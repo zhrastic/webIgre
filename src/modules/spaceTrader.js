@@ -115,6 +115,9 @@ class SpaceTrader {
         });
         this.spaceShipImage.src = 'img/spaceship.png'; // Set source path
     }
+
+
+
     dispose() {
         this.gameViewTitle.dispose();
         this.gameTimeFormated.dispose();
