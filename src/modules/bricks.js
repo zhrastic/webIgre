@@ -215,7 +215,7 @@ class Ball extends BaseGameObject{
     speedY = this.defaultSpeedY;
     radiusHip = 0;
 
-    lostLife = false;
+    lostLife = true;
     spinX = 0;
 
     brickCollision = false;
