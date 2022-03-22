@@ -88,24 +88,19 @@ class GameLoop {
         
         if (!this.canvas) return;
 
-
         let frameTimeNow =  performance.now();
-        if (frameTimeNow > this.checkTime + this.frameDuration) {
-            this.frameCounter++;
-            this.checkTime = performance.now();
-
-            /*
-            background je transparentan... 
-            The clearRect() method sets the pixels in a rectangular area to transparent black (rgba(0,0,0,0)).
-            */
-            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            this.gameObjects.forEach(element => {
-                element.Update(frameTimeNow);
-            });
-            this.gameObjects.forEach(element => {
-                element.Draw(this.ctx);
-            });
-        }
+        this.frameCounter++;
+        /*
+        background je transparentan... 
+        The clearRect() method sets the pixels in a rectangular area to transparent black (rgba(0,0,0,0)).
+        */
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.gameObjects.forEach(element => {
+            element.Update(frameTimeNow);
+        });
+        this.gameObjects.forEach(element => {
+            element.Draw(this.ctx);
+        });
  
         if (frameTimeNow > this.secTime + 1000) {
             //console.log(`FPS: ${this.framesPerSecond()}`);
@@ -177,13 +172,11 @@ class Player extends BaseGameObject {
                 
                 let upperCaseKey = keyMap[i].toUpperCase();
     
-                if (upperCaseKey == "ARROWUP" || upperCaseKey == "W") {
+                if (upperCaseKey == "ARROWUP" || upperCaseKey == " ") {
                     let kugla = this.gameLoop.ball;
                     if (kugla.lostLife) {
                         kugla.lostLife = false;
                     }
-                } else if (upperCaseKey == "ARROWDOWN" || upperCaseKey == "S") {
-
                 } else if (upperCaseKey == "ARROWLEFT" || upperCaseKey == "A") {
                     this.x = this.x - this.speedX;
                     this.currentMoveDirection = PlayerMoveDirection.LEFT;
