@@ -7,7 +7,13 @@
         </div>
         <div class="col-xl-6 col-lg-4 col-xs-2">
             <span>FPS:</span>
-            <span data-bind="text: game.framesPerSecond"></span>
+            <span data-bind="text: game.framesPerSecond"></span><br/>
+            <span>Balls:</span>
+            <span data-bind="text: game.ballCount"></span><br/>
+            <!--ko if: game.ballCount() == 0-->
+            <br/><br/>
+            <button class="btn btn-success" data-bind="click: newGame">Nova igra</button>
+            <!--/ko-->
         </div>
     </div>
     

@@ -31,7 +31,7 @@ class BricksGame {
         this.game.ball = ball;
         let brickWidth = 50;
         let brickHeight = 20;
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 12; i++) {
             for (let j = 0; j < 5; j++) {
                 let brick = new Brick(this.game);
                 let x = 10 + (i * brickWidth) + (i * 3);
@@ -41,17 +41,23 @@ class BricksGame {
             }
         }
     }
+
+    newGame() {
+        this.game.ballCount(5);
+        this.game.startNewGame();
+    }
 }
 
 
 class GameLoop {
-    canvasWidth = 550;
-    canvasHeight = 500;
+    canvasWidth = 650;
+    canvasHeight = 600;
     active = true;
     checkTime = performance.now();
     secTime = this.checkTime;
     frameDuration =  16.666666;  //60 FPS
     framesPerSecond = ko.observable(0);
+    ballCount = ko.observable(5);
     frameCounter = 0;
     currentRequest;
     keyMap  = [];
@@ -60,6 +66,16 @@ class GameLoop {
     gameObjects = [];
     player = null;
     ball = null;
+
+    startNewGame() {
+        this.gameObjects.forEach(element => {
+            if (element.type == GameObjectType.BRICK) {
+                element.dropCounter = 3;
+            }
+        });
+        this.currentAnimationRequest = window.requestAnimationFrame(this.gameLoop.bind(this));
+    }
+
     init() {
         this.active = true;
         console.log("LOOP STARTED");
@@ -87,6 +103,8 @@ class GameLoop {
     gameLoop() {
         
         if (!this.canvas) return;
+
+        if (this.ballCount() <= 0) return;
 
         let frameTimeNow =  performance.now();
         this.frameCounter++;
@@ -131,6 +149,8 @@ class BaseGameObject {
     gameLoop = null;
     lastFrameTime = 0;
     frameDuration =  16.666666; //60 FPS
+    type = GameObjectType.NONE;
+
     constructor(gameLoop) {
         this.gameLoop = gameLoop;
         this.Init();
@@ -148,12 +168,13 @@ class Player extends BaseGameObject {
     currentMoveDirection = PlayerMoveDirection.NONE;
     touched = false;
     constructor(gameLoop) {
-        super(gameLoop)
+        super(gameLoop);
+        this.type = GameObjectType.PLAYER;
     }
 
     Init() {
         this.x = 200;
-        this.y = 480;
+        this.y = this.gameLoop.canvasHeight - 20;
     }
 
     Update(loopFrameTime) {
@@ -219,9 +240,11 @@ class Ball extends BaseGameObject{
     spinX = 0;
 
     brickCollision = false;
+    sideCollision = false;
 
     constructor(gameLoop) {
         super(gameLoop);
+        this.type = GameObjectType.BALL;
         this.Init();
     }
 
@@ -240,6 +263,10 @@ class Ball extends BaseGameObject{
         if (this.brickCollision) {
             this.speedY = this.speedY * -1;
             this.brickCollision = false;
+            if (this.sideCollision) {
+                this.speedX = this.speedX * -1;
+            }
+            this.sideCollision = false;
             return;
         }
 
@@ -294,7 +321,7 @@ class Ball extends BaseGameObject{
                 }
 
                 if (changeXSpeed) {
-                    this.speedX = (this.speedX + this.getValueUSmjeruX(1)) * -1;
+                    this.speedX = (this.speedX + this.getValueUSmjeruX(2)) * -1;
                 } else {
                     this.speedX = this.getValueUSmjeruX(this.defaultSpeedX);
                 }
@@ -318,6 +345,7 @@ class Ball extends BaseGameObject{
 
         if (this.speedY > 0 && bottomEdge + Math.abs(this.speedY) >= (this.gameLoop.canvasHeight + this.radius)) {
             this.lostLife = true;
+            this.gameLoop.ballCount(this.gameLoop.ballCount() -1);
             return;
         }
         
@@ -363,7 +391,8 @@ class Brick extends BaseGameObject {
     dropCounter = 3
     
     constructor(gameLoop) {
-        super(gameLoop)
+        super(gameLoop);
+        this.type = GameObjectType.BRICK;
     }
 
     Init(x, y, width, height) {
@@ -384,7 +413,7 @@ class Brick extends BaseGameObject {
 
         let ball = this.gameLoop.ball;
 
-        if (ball.brickCollision) return; //već se sudarila sa drugom kuglicom;
+        if (ball.brickCollision) return; //već se kugla sudarila sa drugom ciglicom, idi van
 
         let ballLeftEdge = ball.x - ball.radius;
         let ballRightEdge = ball.x + ball.radius;
@@ -395,9 +424,12 @@ class Brick extends BaseGameObject {
             if ((ballLeftEdge >= leftEdge && ballLeftEdge <= rightEdge) || (ballRightEdge >= leftEdge && ballRightEdge <= rightEdge) ) {
                 this.dropCounter--;
                 ball.brickCollision = true;
+                //Detekcija da li je udarila po strani
+                if (ballLeftEdge == rightEdge || ballRightEdge == leftEdge) {
+                    ball.sideCollision = true;
+                }
             }
         }
-
     };
 
     Draw(ctx) {
@@ -440,6 +472,13 @@ const PlayerMoveDirection = {
     NONE: "NONE",
     LEFT: "LEFT",
     RIGHT: "RIGHT"
+}
+
+const GameObjectType = {
+    NONE: "NONE",
+    PLAYER: "PLAYER",
+    BALL: "BALL",
+    BRICK: "BRICK"
 }
 
 export {BricksGame as GameModule};
